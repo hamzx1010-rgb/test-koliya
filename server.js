@@ -8,7 +8,6 @@ app.use(express.static('public'));
 
 const DB_PATH = path.join(__dirname, 'db.json');
 
-// Initialize database structure
 const readDB = () => {
     try {
         if (!fs.existsSync(DB_PATH)) {
@@ -28,8 +27,7 @@ const readDB = () => {
 
 const writeDB = (data) => fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
 
-// --- AUTHENTICATION ---
-
+// --- REGISTRATION ---
 app.post('/api/register', (req, res) => {
     const { user, pass, name, wilaya, cardId } = req.body;
     const db = readDB();
@@ -41,7 +39,7 @@ app.post('/api/register', (req, res) => {
     db.users.push({
         user, pass, name, wilaya, cardId,
         role: 'student',
-        status: 'pending', // Visible in Command Center
+        status: 'pending',
         joinedAt: new Date().toISOString()
     });
     
@@ -49,65 +47,53 @@ app.post('/api/register', (req, res) => {
     res.json({ success: true });
 });
 
+// --- FIXED LOGIN ---
 app.post('/api/login', (req, res) => {
     const { user, pass } = req.body;
     const db = readDB();
-    const found = db.users.find(u => u.user === user && u.pass === pass);
+    
+    // Find the user by username
+    const found = db.users.find(u => u.user === user);
 
-    if (!found) return res.status(401).json({ success: false, err: 'بيانات خاطئة' });
-    if (db.banned.includes(user)) return res.status(403).json({ success: false, err: 'حسابك محظور' });
-    if (found.status === 'pending') return res.status(403).json({ success: false, err: 'الحساب قيد المراجعة' });
+    // 1. Check if user exists and password matches
+    if (!found || found.pass !== pass) {
+        return res.status(401).json({ success: false, err: 'اسم المستخدم أو كلمة السر خاطئة' });
+    }
 
-    res.json({ success: true, user: found });
+    // 2. Check if banned
+    if (db.banned && db.banned.includes(user)) {
+        return res.status(403).json({ success: false, err: 'عذراً، تم حظر حسابك من قبل الإدارة' });
+    }
+
+    // 3. Check if still pending (Not yet approved by Admin)
+    if (found.status === 'pending') {
+        return res.status(403).json({ success: false, err: 'حسابك في انتظار تفعيل المدير. يرجى المحاولة لاحقاً' });
+    }
+
+    // 4. Success - Send back user info (minus the password for security)
+    const { pass: _, ...userSafe } = found;
+    res.json({ success: true, user: userSafe });
 });
 
-// --- FEED LOGIC ---
-
-app.get('/api/posts', (req, res) => {
-    res.json(readDB().posts);
-});
-
-app.post('/api/posts', (req, res) => {
-    const { author, content } = req.body;
-    const db = readDB();
-    db.posts.unshift({
-        id: Date.now(),
-        author,
-        content,
-        timestamp: new Date().toISOString()
-    });
-    writeDB(db);
-    res.json({ success: true });
-});
-
-// --- COMMAND CENTER (ADMIN) LOGIC ---
-
+// --- ADMIN DATA ---
 app.get('/api/admin/data', (req, res) => {
     res.json(readDB());
 });
 
+// --- ADMIN ACTIONS ---
 app.post('/api/admin/action', (req, res) => {
     const { type, target } = req.body;
     let db = readDB();
 
-    switch(type) {
-        case 'approve':
-            const user = db.users.find(u => u.user === target);
-            if (user) user.status = 'active';
-            break;
-        case 'ban':
-            if (!db.banned.includes(target)) db.banned.push(target);
-            break;
-        case 'unban':
-            db.banned = db.banned.filter(u => u !== target);
-            break;
-        case 'deletePost':
-            db.posts = db.posts.filter(p => p.id.toString() !== target.toString());
-            break;
-        case 'makeAdmin':
-            const u = db.users.find(u => u.user === target);
-            if (u) u.role = 'admin';
-            break;
+    if (type === 'approve') {
+        const u = db.users.find(u => u.user === target);
+        if (u) u.status = 'active';
+    } 
+    else if (type === 'ban') {
+        if (!db.banned.includes(target)) db.banned.push(target);
+    } 
+    else if (type === 'unban') {
+        db.banned = db.banned.filter(u => u !== target);
     }
 
     writeDB(db);
@@ -115,4 +101,4 @@ app.post('/api/admin/action', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Koliya Command Center Active on Port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
