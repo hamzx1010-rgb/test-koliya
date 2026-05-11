@@ -8,78 +8,41 @@ app.use(express.static('public'));
 
 const DB_PATH = path.join(__dirname, 'db.json');
 
-// Database Initialization
 const readDB = () => {
-    try {
-        if (!fs.existsSync(DB_PATH)) {
-            const initial = { 
-                users: [{ user: 'admin', pass: 'owner2026', name: 'المدير', role: 'admin', status: 'active' }], 
-                posts: [], 
-                busSchedules: {}, 
-                banned: [] 
-            };
-            fs.writeFileSync(DB_PATH, JSON.stringify(initial, null, 2));
-            return initial;
-        }
-        return JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
-    } catch (e) {
-        return { users: [], posts: [], busSchedules: {}, banned: [] };
+    if (!fs.existsSync(DB_PATH)) {
+        const init = { users: [{ user: 'admin', pass: 'owner2026', role: 'admin', status: 'active' }], posts: [] };
+        fs.writeFileSync(DB_PATH, JSON.stringify(init, null, 2));
+        return init;
     }
+    return JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
 };
 
 const writeDB = (data) => fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
 
-// 1. Registration (Sending request to Admin)
+// Registration endpoint
 app.post('/api/register', (req, res) => {
-    const { user, pass, name, wilaya, cardId, bacId } = req.body;
     const db = readDB();
-    
-    if (db.users.find(u => u.user === user)) {
-        return res.status(400).json({ success: false, err: 'المستخدم موجود بالفعل' });
-    }
-
-    db.users.push({
-        user, pass, name, wilaya, cardId, bacId,
-        role: 'student',
-        status: 'pending', // Key for admin visibility
-        joinedAt: new Date().toISOString()
-    });
-    
+    const newUser = { ...req.body, role: 'student', status: 'pending' };
+    if (db.users.find(u => u.user === newUser.user)) return res.status(400).send();
+    db.users.push(newUser);
     writeDB(db);
-    res.json({ success: true });
+    res.status(200).send();
 });
 
-// 2. Login Logic
-app.post('/api/login', (req, res) => {
-    const { user, pass } = req.body;
+// Admin data endpoint (Independent)
+app.get('/api/admin/requests', (req, res) => {
     const db = readDB();
-    const found = db.users.find(u => u.user === user && u.pass === pass);
-
-    if (!found) return res.status(401).json({ success: false, err: 'خطأ في البيانات' });
-    if (found.status === 'pending') return res.status(403).json({ success: false, err: 'بانتظار التفعيل' });
-    
-    res.json({ success: true, user: found });
+    const pending = db.users.filter(u => u.status === 'pending');
+    res.json(pending);
 });
 
-// 3. Admin: Fetch All Data (including pending requests)
-app.get('/api/admin/data', (req, res) => {
-    res.json(readDB());
-});
-
-// 4. Admin: Approve Student
+// Approval endpoint
 app.post('/api/admin/approve', (req, res) => {
-    const { targetUser } = req.body;
     const db = readDB();
-    const idx = db.users.findIndex(u => u.user === targetUser);
-    
-    if (idx !== -1) {
-        db.users[idx].status = 'active';
-        writeDB(db);
-        res.json({ success: true });
-    } else {
-        res.status(404).json({ success: false });
-    }
+    const user = db.users.find(u => u.user === req.body.user);
+    if (user) user.status = 'active';
+    writeDB(db);
+    res.status(200).send();
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Koliya Backend running on port ${PORT}`));
+app.listen(3000);
