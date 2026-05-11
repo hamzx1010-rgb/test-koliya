@@ -3,92 +3,114 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>كلية — تسجيل الدخول</title>
-  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet"/>
+  <title>لوحة التحكم — الإدارة المركزية</title>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Space+Mono&display=swap" rel="stylesheet"/>
   <style>
-    :root { --bg: #0a0a08; --bg2: #0e0e0b; --gold: #c9a84c; --cream: #f5f0e8; --border: rgba(201,168,76,0.12); }
-    body { background: var(--bg); color: var(--cream); font-family: 'Amiri', serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-    .auth-box { background: var(--bg2); border: 1px solid var(--border); padding: 30px; width: 100%; max-width: 400px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    h2 { color: var(--gold); text-align: center; margin-bottom: 25px; }
-    input, select { width: 100%; padding: 12px; margin-bottom: 15px; background: #131310; border: 1px solid var(--border); color: #fff; border-radius: 8px; font-family: 'Amiri'; box-sizing: border-box; }
-    .btn { width: 100%; padding: 12px; background: var(--gold); border: none; color: #000; font-weight: bold; border-radius: 8px; cursor: pointer; font-family: 'Amiri'; }
-    .hidden { display: none; }
-    .toggle-link { text-align: center; margin-top: 20px; font-size: 0.9rem; color: #888; cursor: pointer; }
-    .toggle-link span { color: var(--gold); text-decoration: underline; }
+    :root { --bg: #050505; --bg-card: #0e0e0b; --gold: #c9a84c; --red: #ff4444; --green: #4ca87a; --border: rgba(201, 168, 76, 0.15); }
+    body { background: var(--bg); color: #f5f0e8; font-family: 'Amiri', serif; margin: 0; padding: 20px; }
+    .container { max-width: 1000px; margin: auto; }
+    
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    .card { background: var(--bg-card); border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-bottom: 25px; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th { text-align: right; color: var(--gold); border-bottom: 2px solid var(--border); padding: 10px; font-size: 1.1rem; }
+    td { padding: 15px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    
+    .btn { padding: 8px 18px; border-radius: 6px; border: none; cursor: pointer; font-family: 'Amiri'; font-weight: bold; transition: 0.3s; }
+    .btn-approve { background: var(--green); color: #fff; }
+    .btn-approve:hover { background: #3e8e68; }
+    .btn-logout { background: transparent; border: 1px solid var(--red); color: var(--red); }
+    
+    .badge-pending { color: var(--gold); background: rgba(201,168,76,0.1); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; border: 1px solid var(--gold); }
   </style>
 </head>
 <body>
 
-<div class="auth-box">
-    <div id="loginView">
-        <h2>تسجيل الدخول</h2>
-        <input type="text" id="lUser" placeholder="اسم المستخدم">
-        <input type="password" id="lPass" placeholder="كلمة السر">
-        <button class="btn" onclick="login()">دخول</button>
-        <div class="toggle-link" onclick="toggleView(true)">ليس لديك حساب؟ <span>سجل الآن</span></div>
+<div class="container">
+    <div class="header">
+        <h1 style="color:var(--gold)">لوحة الإدارة المركزية</h1>
+        <button class="btn btn-logout" onclick="logout()">تسجيل الخروج</button>
     </div>
 
-    <div id="regView" class="hidden">
-        <h2>تسجيل طالب جديد</h2>
-        <input type="text" id="rCard" placeholder="رقم بطاقة الطالب">
-        <select id="rWilaya">
-            <option value="البليدة">البليدة</option>
-            <option value="الجزائر">الجزائر</option>
-            <option value="تيبازة">تيبازة</option>
-        </select>
-        <input type="text" id="rName" placeholder="الاسم الكامل">
-        <input type="text" id="rUser" placeholder="اسم المستخدم">
-        <input type="password" id="rPass" placeholder="كلمة السر">
-        <button class="btn" onclick="register()">إرسال الطلب</button>
-        <div class="toggle-link" onclick="toggleView(false)">لديك حساب؟ <span>سجل دخول</span></div>
+    <div class="card">
+        <h3>طلبات تفعيل الحسابات المعلقة</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>اسم الطالب</th>
+                    <th>الولاية</th>
+                    <th>رقم البطاقة</th>
+                    <th>الحالة</th>
+                    <th>الإجراء</th>
+                </tr>
+            </thead>
+            <tbody id="studentTable">
+                </tbody>
+        </table>
     </div>
 </div>
 
 <script>
-    function toggleView(showReg) {
-        document.getElementById('loginView').classList.toggle('hidden', showReg);
-        document.getElementById('regView').classList.toggle('hidden', !showReg);
+    // Security Check: Only allow if logged in as admin
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    if (!userData || userData.role !== 'admin') {
+        window.location.href = 'index.html';
     }
 
-    async function login() {
-        const user = document.getElementById('lUser').value;
-        const pass = document.getElementById('lPass').value;
-        const res = await fetch('/api/login', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ user, pass })
-        });
-        const data = await res.json();
-        if(data.success) {
-            localStorage.setItem('userData', JSON.stringify(data.user));
-            window.location.href = data.user.role === 'admin' ? 'admin.html' : 'feed.html';
-        } else {
-            alert(data.err || 'خطأ في بيانات الدخول');
+    async function loadRequests() {
+        try {
+            const res = await fetch('/api/admin/data');
+            const db = await res.json();
+            const table = document.getElementById('studentTable');
+            
+            // Show only pending students
+            const pending = db.users.filter(u => u.status === 'pending');
+
+            if (pending.length === 0) {
+                table.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:#888;">لا توجد طلبات تفعيل جديدة حالياً</td></tr>';
+                return;
+            }
+
+            table.innerHTML = pending.map(user => `
+                <tr>
+                    <td><b>${user.name}</b><br><small style="color:var(--gold)">@${user.user}</small></td>
+                    <td>${user.wilaya}</td>
+                    <td style="font-family:'Space Mono'">${user.cardId}</td>
+                    <td><span class="badge-pending">قيد الانتظار</span></td>
+                    <td>
+                        <button class="btn btn-approve" onclick="approveUser('${user.user}')">تفعيل الحساب</button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch (e) {
+            console.error("Error fetching data:", e);
         }
     }
 
-    async function register() {
-        const regData = {
-            user: document.getElementById('rUser').value,
-            pass: document.getElementById('rPass').value,
-            name: document.getElementById('rName').value,
-            wilaya: document.getElementById('rWilaya').value,
-            cardId: document.getElementById('rCard').value
-        };
+    async function approveUser(username) {
+        if(!confirm(`هل أنت متأكد من تفعيل حساب ${username}؟`)) return;
 
-        const res = await fetch('/api/register', {
+        const res = await fetch('/api/admin/approve', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(regData)
+            body: JSON.stringify({ targetUser: username })
         });
-
-        if(res.ok) {
-            alert('تم إرسال طلبك! يرجى انتظار تفعيل المدير لحسابك.');
-            location.reload();
+        
+        if (res.ok) {
+            loadRequests();
         } else {
-            alert('فشل التسجيل. ربما اسم المستخدم محجوز.');
+            alert("فشل في تحديث الحالة");
         }
     }
+
+    function logout() {
+        localStorage.removeItem('userData');
+        window.location.href = 'index.html';
+    }
+
+    // Initial load
+    loadRequests();
 </script>
 </body>
 </html>
