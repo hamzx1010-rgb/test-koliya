@@ -8,28 +8,40 @@ app.use(express.static('public'));
 
 const DB_PATH = path.join(__dirname, 'db.json');
 
+// Initialize database structure
 const readDB = () => {
-    if (!fs.existsSync(DB_PATH)) {
-        const init = { users: [{ user: 'admin', pass: 'owner2026', role: 'admin', status: 'active' }], posts: [], banned: [] };
-        fs.writeFileSync(DB_PATH, JSON.stringify(init, null, 2));
-        return init;
+    try {
+        if (!fs.existsSync(DB_PATH)) {
+            const initial = { 
+                users: [{ user: 'admin', pass: 'owner2026', name: 'المدير', role: 'admin', status: 'active' }], 
+                posts: [], 
+                banned: [] 
+            };
+            fs.writeFileSync(DB_PATH, JSON.stringify(initial, null, 2));
+            return initial;
+        }
+        return JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+    } catch (e) {
+        return { users: [], posts: [], banned: [] };
     }
-    return JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
 };
 
 const writeDB = (data) => fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
 
-// 1. Registration (Ensuring keys match the frontend)
+// --- AUTHENTICATION ---
+
 app.post('/api/register', (req, res) => {
-    const db = readDB();
     const { user, pass, name, wilaya, cardId } = req.body;
+    const db = readDB();
     
-    if (db.users.find(u => u.user === user)) return res.status(400).json({ err: 'المستخدم موجود' });
+    if (db.users.find(u => u.user === user)) {
+        return res.status(400).json({ success: false, err: 'المستخدم موجود' });
+    }
 
     db.users.push({
         user, pass, name, wilaya, cardId,
         role: 'student',
-        status: 'pending',
+        status: 'pending', // Visible in Command Center
         joinedAt: new Date().toISOString()
     });
     
@@ -37,32 +49,70 @@ app.post('/api/register', (req, res) => {
     res.json({ success: true });
 });
 
-// 2. Admin: Get Data
+app.post('/api/login', (req, res) => {
+    const { user, pass } = req.body;
+    const db = readDB();
+    const found = db.users.find(u => u.user === user && u.pass === pass);
+
+    if (!found) return res.status(401).json({ success: false, err: 'بيانات خاطئة' });
+    if (db.banned.includes(user)) return res.status(403).json({ success: false, err: 'حسابك محظور' });
+    if (found.status === 'pending') return res.status(403).json({ success: false, err: 'الحساب قيد المراجعة' });
+
+    res.json({ success: true, user: found });
+});
+
+// --- FEED LOGIC ---
+
+app.get('/api/posts', (req, res) => {
+    res.json(readDB().posts);
+});
+
+app.post('/api/posts', (req, res) => {
+    const { author, content } = req.body;
+    const db = readDB();
+    db.posts.unshift({
+        id: Date.now(),
+        author,
+        content,
+        timestamp: new Date().toISOString()
+    });
+    writeDB(db);
+    res.json({ success: true });
+});
+
+// --- COMMAND CENTER (ADMIN) LOGIC ---
+
 app.get('/api/admin/data', (req, res) => {
     res.json(readDB());
 });
 
-// 3. Admin: Unified Actions
 app.post('/api/admin/action', (req, res) => {
     const { type, target } = req.body;
-    const db = readDB();
+    let db = readDB();
 
-    if (type === 'approve') {
-        const u = db.users.find(u => u.user === target);
-        if (u) u.status = 'active';
-    } 
-    else if (type === 'ban') {
-        if (!db.banned.includes(target)) db.banned.push(target);
-    } 
-    else if (type === 'unban') {
-        db.banned = db.banned.filter(u => u !== target);
-    } 
-    else if (type === 'deletePost') {
-        db.posts = db.posts.filter(p => p.id.toString() !== target.toString());
+    switch(type) {
+        case 'approve':
+            const user = db.users.find(u => u.user === target);
+            if (user) user.status = 'active';
+            break;
+        case 'ban':
+            if (!db.banned.includes(target)) db.banned.push(target);
+            break;
+        case 'unban':
+            db.banned = db.banned.filter(u => u !== target);
+            break;
+        case 'deletePost':
+            db.posts = db.posts.filter(p => p.id.toString() !== target.toString());
+            break;
+        case 'makeAdmin':
+            const u = db.users.find(u => u.user === target);
+            if (u) u.role = 'admin';
+            break;
     }
 
     writeDB(db);
     res.json({ success: true });
 });
 
-app.listen(3000, () => console.log('Command Center Online on 3000'));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Koliya Command Center Active on Port ${PORT}`));
