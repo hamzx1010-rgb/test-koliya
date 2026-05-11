@@ -1,91 +1,179 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>لوحة الإدارة المركزية</title>
-  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Space+Mono&display=swap" rel="stylesheet"/>
-  <style>
-    :root { --bg: #050505; --bg-card: #0e0e0b; --gold: #c9a84c; --green: #4ca87a; --border: rgba(201, 168, 76, 0.15); }
-    body { background: var(--bg); color: #f5f0e8; font-family: 'Amiri', serif; margin: 0; padding: 20px; }
-    .container { max-width: 1000px; margin: auto; }
-    .card { background: var(--bg-card); border: 1px solid var(--border); padding: 25px; border-radius: 12px; }
-    h1 { color: var(--gold); margin-bottom: 20px; border-right: 4px solid var(--gold); padding-right: 15px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th { text-align: right; color: var(--gold); border-bottom: 2px solid var(--border); padding: 12px; }
-    td { padding: 15px 12px; border-bottom: 1px solid var(--border); }
-    .btn-approve { background: var(--green); color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-family: 'Amiri'; font-weight: bold; }
-    .btn-approve:hover { opacity: 0.9; }
-    .empty-msg { text-align: center; padding: 40px; color: #666; font-style: italic; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مركز القيادة | Koliya Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #050505; --panel: #0e0e0b; --gold: #c9a84c; --text: #f5f0e8; --border: rgba(201, 168, 76, 0.15); --red: #ff4444; --green: #4ca87a; }
+        body { background: var(--bg); color: var(--text); font-family: 'Amiri', serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+        /* Sidebar */
+        .sidebar { width: 260px; background: var(--panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px 0; }
+        .sidebar-header { text-align: center; color: var(--gold); font-size: 1.5rem; font-weight: bold; margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+        .nav-item { padding: 15px 25px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 10px; border-right: 3px solid transparent; }
+        .nav-item:hover { background: rgba(201,168,76,0.05); color: var(--gold); }
+        .nav-item.active { background: rgba(201,168,76,0.1); border-right: 3px solid var(--gold); color: var(--gold); }
+
+        /* Main Content */
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; background: linear-gradient(135deg, #050505 0%, #0a0a08 100%); }
+        .command-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .status-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; background: var(--gold); color: #000; padding: 4px 12px; border-radius: 20px; }
+
+        /* Tables & Cards */
+        .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: right; color: var(--gold); border-bottom: 2px solid var(--border); padding: 15px; font-size: 0.9rem; }
+        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; }
+        
+        /* Actions */
+        .btn { padding: 8px 16px; border-radius: 6px; cursor: pointer; border: none; font-family: 'Amiri'; font-weight: bold; transition: 0.2s; }
+        .btn-ok { background: var(--green); color: #fff; }
+        .btn-no { background: var(--red); color: #fff; }
+        .btn-warn { background: transparent; border: 1px solid var(--gold); color: var(--gold); }
+        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+
+        .hidden { display: none; }
+    </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>إدارة طلبات الالتحاق</h1>
-    
-    <div class="card">
-        <table>
-            <thead>
-                <tr>
-                    <th>اسم الطالب</th>
-                    <th>الولاية</th>
-                    <th>بطاقة الطالب</th>
-                    <th>الإجراء</th>
-                </tr>
-            </thead>
-            <tbody id="requestTable">
-                </tbody>
-        </table>
+    <div class="sidebar">
+        <div class="sidebar-header">COMMAND CENTER</div>
+        <div class="nav-item active" onclick="showSection('students', this)">👤 طلبات الأعضاء</div>
+        <div class="nav-item" onclick="showSection('posts', this)">📝 إدارة المنشورات</div>
+        <div class="nav-item" onclick="showSection('users', this)">🛡️ المستخدمين والحظر</div>
+        <div class="nav-item" onclick="showSection('admins', this)">⚙️ الصلاحيات</div>
+        <div style="margin-top: auto; padding: 20px;">
+            <button class="btn btn-no" style="width: 100%;" onclick="location.href='feed.html'">العودة للموقع</button>
+        </div>
     </div>
-</div>
+
+    <div class="main-content">
+        
+        <div id="section-students">
+            <div class="command-header">
+                <h2>تفعيل حسابات الطلاب</h2>
+                <span class="status-badge">LIVE_DATA</span>
+            </div>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الطالب</th>
+                            <th>الولاية</th>
+                            <th>رقم البطاقة</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pendingStudents"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="section-posts" class="hidden">
+            <div class="command-header">
+                <h2>مراجعة المنشورات (Feed)</h2>
+            </div>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الناشر</th>
+                            <th>المحتوى</th>
+                            <th>التوقيت</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="postsList"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="section-users" class="hidden">
+            <div class="command-header">
+                <h2>قائمة المستخدمين الكلية</h2>
+            </div>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>المستخدم</th>
+                            <th>الرتبة</th>
+                            <th>الحالة</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allUsersList"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
 
 <script>
-    async function loadRequests() {
-        try {
-            const res = await fetch('/api/admin/data');
-            const db = await res.json();
-            const container = document.getElementById('requestTable');
-
-            // Find users who are NOT active yet
-            const pending = db.users.filter(u => u.status === 'pending');
-
-            if (pending.length === 0) {
-                container.innerHTML = '<tr><td colspan="4" class="empty-msg">لا توجد طلبات تفعيل معلقة حالياً</td></tr>';
-                return;
-            }
-
-            container.innerHTML = pending.map(u => `
-                <tr>
-                    <td><b>${u.name}</b><br><small style="color:var(--gold)">@${u.user}</small></td>
-                    <td>${u.wilaya}</td>
-                    <td style="font-family:'Space Mono'">${u.cardId}</td>
-                    <td>
-                        <button class="btn-approve" onclick="approve('${u.user}')">تفعيل الحساب</button>
-                    </td>
-                </tr>
-            `).join('');
-        } catch (err) {
-            console.error("Fetch Error:", err);
-        }
+    // --- UI Logic ---
+    function showSection(id, el) {
+        document.querySelectorAll('.main-content > div').forEach(d => d.classList.add('hidden'));
+        document.getElementById('section-' + id).classList.remove('hidden');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        el.classList.add('active');
+        refreshData();
     }
 
-    async function approve(username) {
-        const res = await fetch('/api/admin/approve', {
+    // --- Data Logic ---
+    async function refreshData() {
+        const res = await fetch('/api/admin/data');
+        const db = await res.json();
+        
+        // 1. Render Pending Students
+        const pending = db.users.filter(u => u.status === 'pending');
+        document.getElementById('pendingStudents').innerHTML = pending.map(u => `
+            <tr>
+                <td><b>${u.name}</b><br>@${u.user}</td>
+                <td>${u.wilaya}</td>
+                <td><code>${u.cardId}</code></td>
+                <td><button class="btn btn-ok" onclick="action('approve', '${u.user}')">تفعيل الحساب</button></td>
+            </tr>
+        `).join('') || '<tr><td colspan="4">لا توجد طلبات معلقة</td></tr>';
+
+        // 2. Render Posts
+        document.getElementById('postsList').innerHTML = db.posts.map(p => `
+            <tr>
+                <td>@${p.author}</td>
+                <td>${p.content.substring(0, 50)}...</td>
+                <td>${new Date(p.id).toLocaleTimeString('ar-DZ')}</td>
+                <td><button class="btn btn-no" onclick="action('deletePost', '${p.id}')">حذف</button></td>
+            </tr>
+        `).join('') || '<tr><td colspan="4">لا توجد منشورات</td></tr>';
+
+        // 3. All Users (Ban/Unban)
+        document.getElementById('allUsersList').innerHTML = db.users.map(u => `
+            <tr>
+                <td>${u.user}</td>
+                <td>${u.role}</td>
+                <td>${db.banned?.includes(u.user) ? '🚫 محظور' : '✅ نشط'}</td>
+                <td>
+                    ${db.banned?.includes(u.user) 
+                        ? `<button class="btn btn-ok" onclick="action('unban', '${u.user}')">فك الحظر</button>`
+                        : `<button class="btn btn-no" onclick="action('ban', '${u.user}')">حظر</button>`
+                    }
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    async function action(type, target) {
+        await fetch('/api/admin/action', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ targetUser: username })
+            body: JSON.stringify({ type, target })
         });
-        
-        if (res.ok) {
-            loadRequests();
-        } else {
-            alert("حدث خطأ أثناء التفعيل");
-        }
+        refreshData();
     }
 
-    // Load on start
-    loadRequests();
+    window.onload = refreshData;
 </script>
 </body>
 </html>
