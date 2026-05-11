@@ -3,131 +3,92 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>لوحة التحكم — الإدارة المركزية</title>
-  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Space+Mono&display=swap" rel="stylesheet"/>
+  <title>كلية — تسجيل الدخول</title>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet"/>
   <style>
-    :root {
-      --bg: #050505;
-      --bg-card: #0e0e0b;
-      --gold: #c9a84c;
-      --red: #ff4444;
-      --green: #4ca87a;
-      --border: rgba(201, 168, 76, 0.15);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: #f5f0e8; font-family: 'Amiri', serif; }
-
-    /* --- AUTH GATE (Locked Screen) --- */
-    #authGate {
-      position: fixed; inset: 0; background: var(--bg); z-index: 9999;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 20px;
-    }
-    .auth-box { background: var(--bg-card); padding: 40px; border: 1px solid var(--border); border-radius: 15px; text-align: center; width: 320px; }
-    .auth-input { width: 100%; padding: 12px; background: #000; border: 1px solid var(--gold); color: #fff; text-align: center; margin-bottom: 15px; border-radius: 5px; }
-
-    /* --- MAIN DASHBOARD --- */
-    #dashboard { display: none; padding: 40px 20px; max-width: 1200px; margin: 0 auto; }
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
-    
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px; }
-    .stat-card { background: var(--bg-card); padding: 25px; border: 1px solid var(--border); border-radius: 12px; text-align: center; }
-    .stat-val { font-family: 'Space Mono'; font-size: 2.5rem; color: var(--gold); display: block; }
-
-    .admin-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 30px; }
-    .section-title { padding: 15px 20px; background: rgba(201, 168, 76, 0.05); border-bottom: 1px solid var(--border); font-weight: bold; }
-
-    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-    th { text-align: right; padding: 15px 20px; color: var(--gold); border-bottom: 1px solid var(--border); }
-    td { padding: 15px 20px; border-bottom: 1px solid var(--border); }
-
-    .btn { padding: 5px 12px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; font-family: 'Amiri'; }
-    .btn-approve { background: var(--green); color: #fff; margin-left: 5px; }
-    .btn-ban { background: var(--red); color: #fff; }
-
-    .badge-pending { color: #f09433; border: 1px solid #f09433; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; }
+    :root { --bg: #0a0a08; --bg2: #0e0e0b; --gold: #c9a84c; --cream: #f5f0e8; --border: rgba(201,168,76,0.12); }
+    body { background: var(--bg); color: var(--cream); font-family: 'Amiri', serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .auth-box { background: var(--bg2); border: 1px solid var(--border); padding: 30px; width: 100%; max-width: 400px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    h2 { color: var(--gold); text-align: center; margin-bottom: 25px; }
+    input, select { width: 100%; padding: 12px; margin-bottom: 15px; background: #131310; border: 1px solid var(--border); color: #fff; border-radius: 8px; font-family: 'Amiri'; box-sizing: border-box; }
+    .btn { width: 100%; padding: 12px; background: var(--gold); border: none; color: #000; font-weight: bold; border-radius: 8px; cursor: pointer; font-family: 'Amiri'; }
+    .hidden { display: none; }
+    .toggle-link { text-align: center; margin-top: 20px; font-size: 0.9rem; color: #888; cursor: pointer; }
+    .toggle-link span { color: var(--gold); text-decoration: underline; }
   </style>
 </head>
 <body>
 
-<div id="authGate">
-    <div class="auth-box">
-        <h2 style="color:var(--gold); margin-bottom:10px;">إدارة كلية</h2>
-        <p style="font-size:0.8rem; margin-bottom:20px; color:#888;">هذه المنطقة مخصصة للمطور فقط</p>
-        <input type="password" id="adminPass" class="auth-input" placeholder="كلمة المرور">
-        <button class="btn" style="background:var(--gold); width:100%; padding:10px;" onclick="checkAccess()">دخول اللوحة</button>
-    </div>
-</div>
-
-<div id="dashboard">
-    <header>
-        <h1>لوحة التحكم <span style="font-size:1rem; color:var(--gold);">Owner Mode</span></h1>
-        <button class="btn" style="background:transparent; border:1px solid #444; color:#888" onclick="location.href='feed.html'">العودة للمنصة</button>
-    </header>
-
-    <div class="stats-grid">
-        <div class="stat-card"><span class="stat-val" id="userCount">--</span> مستخدم مسجل</div>
-        <div class="stat-card"><span class="stat-val" id="postCount">--</span> منشورات اليوم</div>
-        <div class="stat-card"><span class="stat-val" id="reportCount">0</span> بلاغات معلقة</div>
+<div class="auth-box">
+    <div id="loginView">
+        <h2>تسجيل الدخول</h2>
+        <input type="text" id="lUser" placeholder="اسم المستخدم">
+        <input type="password" id="lPass" placeholder="كلمة السر">
+        <button class="btn" onclick="login()">دخول</button>
+        <div class="toggle-link" onclick="toggleView(true)">ليس لديك حساب؟ <span>سجل الآن</span></div>
     </div>
 
-    <div class="admin-section">
-        <div class="section-title">طلبات التسجيل الجديدة (تحتاج موافقة)</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>الطالب</th>
-                    <th>رقم البطاقة / الباك</th>
-                    <th>الحالة</th>
-                    <th>الإجراء</th>
-                </tr>
-            </thead>
-            <tbody id="studentTable">
-                </tbody>
-        </table>
+    <div id="regView" class="hidden">
+        <h2>تسجيل طالب جديد</h2>
+        <input type="text" id="rCard" placeholder="رقم بطاقة الطالب">
+        <select id="rWilaya">
+            <option value="البليدة">البليدة</option>
+            <option value="الجزائر">الجزائر</option>
+            <option value="تيبازة">تيبازة</option>
+        </select>
+        <input type="text" id="rName" placeholder="الاسم الكامل">
+        <input type="text" id="rUser" placeholder="اسم المستخدم">
+        <input type="password" id="rPass" placeholder="كلمة السر">
+        <button class="btn" onclick="register()">إرسال الطلب</button>
+        <div class="toggle-link" onclick="toggleView(false)">لديك حساب؟ <span>سجل دخول</span></div>
     </div>
 </div>
 
 <script>
-    // 1. SECURITY: Check password before showing anything
-    function checkAccess() {
-        const pass = document.getElementById('adminPass').value;
-        // Set your own secret password here
-        if (pass === "owner2026") { 
-            document.getElementById('authGate').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-            loadData();
+    function toggleView(showReg) {
+        document.getElementById('loginView').classList.toggle('hidden', showReg);
+        document.getElementById('regView').classList.toggle('hidden', !showReg);
+    }
+
+    async function login() {
+        const user = document.getElementById('lUser').value;
+        const pass = document.getElementById('lPass').value;
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ user, pass })
+        });
+        const data = await res.json();
+        if(data.success) {
+            localStorage.setItem('userData', JSON.stringify(data.user));
+            window.location.href = data.user.role === 'admin' ? 'admin.html' : 'feed.html';
         } else {
-            alert("خطأ في كلمة المرور");
+            alert(data.err || 'خطأ في بيانات الدخول');
         }
     }
 
-    // 2. DATA LOADING (Simulated)
-    function loadData() {
-        // Mock data representing your platform state
-        const students = [
-            { name: "محمد.ع", id: "21213500", bac: "2023/12", status: "pending" },
-            { name: "سامية.ل", id: "22223901", bac: "2024/14", status: "pending" }
-        ];
+    async function register() {
+        const regData = {
+            user: document.getElementById('rUser').value,
+            pass: document.getElementById('rPass').value,
+            name: document.getElementById('rName').value,
+            wilaya: document.getElementById('rWilaya').value,
+            cardId: document.getElementById('rCard').value
+        };
 
-        document.getElementById('userCount').innerText = "142";
-        document.getElementById('postCount').innerText = "28";
+        const res = await fetch('/api/register', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(regData)
+        });
 
-        const table = document.getElementById('studentTable');
-        table.innerHTML = students.map(s => `
-            <tr>
-                <td><b>${s.name}</b></td>
-                <td style="font-family:'Space Mono'">${s.id} | ${s.bac}</td>
-                <td><span class="badge-pending">بانتظار المراجعة</span></td>
-                <td>
-                    <button class="btn btn-approve" onclick="alert('تم تفعيل الحساب')">تفعيل</button>
-                    <button class="btn btn-ban" onclick="this.parentElement.parentElement.remove()">رفض</button>
-                </td>
-            </tr>
-        `).join('');
+        if(res.ok) {
+            alert('تم إرسال طلبك! يرجى انتظار تفعيل المدير لحسابك.');
+            location.reload();
+        } else {
+            alert('فشل التسجيل. ربما اسم المستخدم محجوز.');
+        }
     }
 </script>
-
 </body>
 </html>
