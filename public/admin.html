@@ -3,94 +3,74 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>لوحة التحكم — الإدارة المركزية</title>
+  <title>لوحة الإدارة المركزية</title>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Space+Mono&display=swap" rel="stylesheet"/>
   <style>
-    :root { --bg: #050505; --bg-card: #0e0e0b; --gold: #c9a84c; --red: #ff4444; --green: #4ca87a; --border: rgba(201, 168, 76, 0.15); }
+    :root { --bg: #050505; --bg-card: #0e0e0b; --gold: #c9a84c; --green: #4ca87a; --border: rgba(201, 168, 76, 0.15); }
     body { background: var(--bg); color: #f5f0e8; font-family: 'Amiri', serif; margin: 0; padding: 20px; }
     .container { max-width: 1000px; margin: auto; }
-    
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-    .card { background: var(--bg-card); border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-bottom: 25px; }
-    
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th { text-align: right; color: var(--gold); border-bottom: 2px solid var(--border); padding: 10px; font-size: 1.1rem; }
-    td { padding: 15px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-    
-    .btn { padding: 8px 18px; border-radius: 6px; border: none; cursor: pointer; font-family: 'Amiri'; font-weight: bold; transition: 0.3s; }
-    .btn-approve { background: var(--green); color: #fff; }
-    .btn-approve:hover { background: #3e8e68; }
-    .btn-logout { background: transparent; border: 1px solid var(--red); color: var(--red); }
-    
-    .badge-pending { color: var(--gold); background: rgba(201,168,76,0.1); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; border: 1px solid var(--gold); }
+    .card { background: var(--bg-card); border: 1px solid var(--border); padding: 25px; border-radius: 12px; }
+    h1 { color: var(--gold); margin-bottom: 20px; border-right: 4px solid var(--gold); padding-right: 15px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th { text-align: right; color: var(--gold); border-bottom: 2px solid var(--border); padding: 12px; }
+    td { padding: 15px 12px; border-bottom: 1px solid var(--border); }
+    .btn-approve { background: var(--green); color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-family: 'Amiri'; font-weight: bold; }
+    .btn-approve:hover { opacity: 0.9; }
+    .empty-msg { text-align: center; padding: 40px; color: #666; font-style: italic; }
   </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <h1 style="color:var(--gold)">لوحة الإدارة المركزية</h1>
-        <button class="btn btn-logout" onclick="logout()">تسجيل الخروج</button>
-    </div>
-
+    <h1>إدارة طلبات الالتحاق</h1>
+    
     <div class="card">
-        <h3>طلبات تفعيل الحسابات المعلقة</h3>
         <table>
             <thead>
                 <tr>
                     <th>اسم الطالب</th>
                     <th>الولاية</th>
-                    <th>رقم البطاقة</th>
-                    <th>الحالة</th>
+                    <th>بطاقة الطالب</th>
                     <th>الإجراء</th>
                 </tr>
             </thead>
-            <tbody id="studentTable">
+            <tbody id="requestTable">
                 </tbody>
         </table>
     </div>
 </div>
 
 <script>
-    // Security Check: Only allow if logged in as admin
-    const userData = JSON.parse(localStorage.getItem('userData'));
-    if (!userData || userData.role !== 'admin') {
-        window.location.href = 'index.html';
-    }
-
     async function loadRequests() {
         try {
             const res = await fetch('/api/admin/data');
             const db = await res.json();
-            const table = document.getElementById('studentTable');
-            
-            // Show only pending students
+            const container = document.getElementById('requestTable');
+
+            // Find users who are NOT active yet
             const pending = db.users.filter(u => u.status === 'pending');
 
             if (pending.length === 0) {
-                table.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:#888;">لا توجد طلبات تفعيل جديدة حالياً</td></tr>';
+                container.innerHTML = '<tr><td colspan="4" class="empty-msg">لا توجد طلبات تفعيل معلقة حالياً</td></tr>';
                 return;
             }
 
-            table.innerHTML = pending.map(user => `
+            container.innerHTML = pending.map(u => `
                 <tr>
-                    <td><b>${user.name}</b><br><small style="color:var(--gold)">@${user.user}</small></td>
-                    <td>${user.wilaya}</td>
-                    <td style="font-family:'Space Mono'">${user.cardId}</td>
-                    <td><span class="badge-pending">قيد الانتظار</span></td>
+                    <td><b>${u.name}</b><br><small style="color:var(--gold)">@${u.user}</small></td>
+                    <td>${u.wilaya}</td>
+                    <td style="font-family:'Space Mono'">${u.cardId}</td>
                     <td>
-                        <button class="btn btn-approve" onclick="approveUser('${user.user}')">تفعيل الحساب</button>
+                        <button class="btn-approve" onclick="approve('${u.user}')">تفعيل الحساب</button>
                     </td>
                 </tr>
             `).join('');
-        } catch (e) {
-            console.error("Error fetching data:", e);
+        } catch (err) {
+            console.error("Fetch Error:", err);
         }
     }
 
-    async function approveUser(username) {
-        if(!confirm(`هل أنت متأكد من تفعيل حساب ${username}؟`)) return;
-
+    async function approve(username) {
         const res = await fetch('/api/admin/approve', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -100,16 +80,11 @@
         if (res.ok) {
             loadRequests();
         } else {
-            alert("فشل في تحديث الحالة");
+            alert("حدث خطأ أثناء التفعيل");
         }
     }
 
-    function logout() {
-        localStorage.removeItem('userData');
-        window.location.href = 'index.html';
-    }
-
-    // Initial load
+    // Load on start
     loadRequests();
 </script>
 </body>
