@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>كلية — الدخول والتسجيل</title>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #0a0a08; --bg2: #0e0e0b; --gold: #c9a84c; --border: rgba(201,168,76,0.12); --cream: #f5f0e8; }
+    body { background: var(--bg); color: var(--cream); font-family: 'Amiri', serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    
+    .auth-box { background: var(--bg2); border: 1px solid var(--border); padding: 30px; width: 100%; max-width: 400px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    h2 { color: var(--gold); text-align: center; margin-bottom: 25px; font-size: 1.8rem; }
+    
+    .form-step { display: none; }
+    .form-step.active { display: block; }
+    
+    input, select { width: 100%; padding: 12px; margin-bottom: 15px; background: #131310; border: 1px solid var(--border); color: #fff; border-radius: 8px; font-family: 'Amiri'; box-sizing: border-box; }
+    input:focus { border-color: var(--gold); outline: none; }
+    
+    .btn { width: 100%; padding: 12px; background: var(--gold); border: none; color: #000; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.3s; font-family: 'Amiri'; font-size: 1.1rem; }
+    .btn:hover { background: #e0bc5a; transform: translateY(-2px); }
+    
+    .toggle-link { text-align: center; margin-top: 20px; font-size: 0.9rem; color: #888; cursor: pointer; }
+    .toggle-link span { color: var(--gold); text-decoration: underline; }
+    
+    .error-msg { color: #ff4444; font-size: 0.85rem; margin-bottom: 10px; display: none; text-align: center; }
+  </style>
+</head>
+<body>
+
+<div class="auth-box">
+    <div id="loginView" class="form-step active">
+        <h2>تسجيل الدخول</h2>
+        <div id="loginErr" class="error-msg">خطأ في البيانات</div>
+        <input type="text" id="lUser" placeholder="اسم المستخدم">
+        <input type="password" id="lPass" placeholder="كلمة السر">
+        <button class="btn" onclick="login()">دخول</button>
+        <div class="toggle-link" onclick="showRegister()">ليس لديك حساب؟ <span>سجل الآن</span></div>
+    </div>
+
+    <div id="regStep1" class="form-step">
+        <h2>تحقق الهوية (1/2)</h2>
+        <div id="regErr1" class="error-msg">أكمل البيانات للمتابعة</div>
+        <input type="text" id="rCard" placeholder="رقم بطاقة الطالب">
+        <input type="text" id="rBac" placeholder="رقم شهادة البكالوريا">
+        <select id="rWilaya">
+            <option value="" disabled selected>اختر الولاية</option>
+            <option value="البليدة">البليدة</option>
+            <option value="الجزائر">الجزائر</option>
+            <option value="تيبازة">تيبازة</option>
+            <option value="المدية">المدية</option>
+            <option value="بومرداس">بومرداس</option>
+        </select>
+        <button class="btn" onclick="nextStep()">المتابعة</button>
+        <div class="toggle-link" onclick="showLogin()">لديك حساب؟ <span>سجل دخول</span></div>
+    </div>
+
+    <div id="regStep2" class="form-step">
+        <h2>بيانات الحساب (2/2)</h2>
+        <div id="regErr2" class="error-msg">يرجى ملء كافة الخانات</div>
+        <input type="text" id="rName" placeholder="الاسم الكامل">
+        <input type="text" id="rUser" placeholder="اسم المستخدم (Username)">
+        <input type="password" id="rPass" placeholder="كلمة السر (8 أحرف)">
+        <input type="password" id="rConfirm" placeholder="تأكيد كلمة السر">
+        <button class="btn" onclick="register()">إنشاء الحساب</button>
+        <div class="toggle-link" onclick="prevStep()">العودة للخلف</div>
+    </div>
+</div>
+
+<script>
+    function showRegister() { 
+        document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+        document.getElementById('regStep1').classList.add('active');
+    }
+    function showLogin() {
+        document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+        document.getElementById('loginView').classList.add('active');
+    }
+    function nextStep() {
+        if(!document.getElementById('rCard').value || !document.getElementById('rWilaya').value) {
+            document.getElementById('regErr1').style.display = 'block';
+            return;
+        }
+        document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+        document.getElementById('regStep2').classList.add('active');
+    }
+    function prevStep() {
+        document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+        document.getElementById('regStep1').classList.add('active');
+    }
+
+    async function login() {
+        const user = document.getElementById('lUser').value;
+        const pass = document.getElementById('lPass').value;
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ user, pass })
+        });
+        const data = await res.json();
+        if(data.success) {
+            localStorage.setItem('user', JSON.stringify(data.user));
+            window.location.href = data.user.role === 'admin' ? 'admin.html' : 'feed.html';
+        } else {
+            document.getElementById('loginErr').style.display = 'block';
+        }
+    }
+
+    async function register() {
+        const pass = document.getElementById('rPass').value;
+        if(pass !== document.getElementById('rConfirm').value) {
+            alert('كلمتا السر غير متطابقتين');
+            return;
+        }
+        
+        const regData = {
+            user: document.getElementById('rUser').value,
+            pass: pass,
+            name: document.getElementById('rName').value,
+            wilaya: document.getElementById('rWilaya').value,
+            cardId: document.getElementById('rCard').value,
+            bacId: document.getElementById('rBac').value
+        };
+
+        const res = await fetch('/api/register', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(regData)
+        });
+
+        if(res.ok) {
+            alert('تم طلب التسجيل! بانتظار موافقة المدير.');
+            location.reload();
+        } else {
+            alert('خطأ في التسجيل. قد يكون المستخدم موجوداً بالفعل.');
+        }
+    }
+</script>
+</body>
+</html>

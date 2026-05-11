@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>كلية — الملف الشخصي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Space+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #0a0a08; --bg2: #0e0e0b; --gold: #c9a84c; --border: rgba(201,168,76,0.12); }
+    body { background: var(--bg); color: #fff; font-family: 'Amiri', serif; margin: 0; padding-bottom: 70px; }
+    
+    .profile-header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 30px 20px; text-align: center; }
+    .avatar-container { position: relative; width: 90px; height: 90px; margin: 0 auto 15px; }
+    .avatar { width: 100%; height: 100%; border-radius: 50%; background: #1a1a17; border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: var(--gold); }
+    .verified-badge { position: absolute; bottom: 0; right: 0; background: #42a5f5; color: #fff; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; border: 2px solid var(--bg2); display: none; }
+    
+    .name { font-size: 1.5rem; font-weight: bold; margin-bottom: 5px; }
+    .handle { color: var(--gold); font-family: 'Space Mono'; font-size: 0.9rem; margin-bottom: 15px; direction: ltr; }
+    .bio { color: #aaa; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.4; }
+    
+    .stats { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; }
+    .stat { text-align: center; }
+    .stat-val { display: block; font-family: 'Space Mono'; font-weight: bold; font-size: 1.2rem; }
+    .stat-label { font-size: 0.8rem; color: #666; }
+    
+    .btn-edit { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 8px 30px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .btn-edit:hover { background: rgba(201,168,76,0.1); }
+
+    .grid-tabs { display: flex; border-top: 1px solid var(--border); background: var(--bg2); }
+    .g-tab { flex: 1; padding: 15px; text-align: center; color: #666; cursor: pointer; }
+    .g-tab.active { color: var(--gold); border-top: 2px solid var(--gold); margin-top: -1px; }
+
+    .post-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+    .grid-item { aspect-ratio: 1/1; background: #111; display: flex; align-items: center; justify-content: center; padding: 10px; text-align: center; font-size: 0.8rem; color: #888; overflow: hidden; }
+
+    .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--bg2); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 100; }
+    .nav-link { text-decoration: none; color: #888; text-align: center; font-size: 1.2rem; }
+    .nav-link.active { color: var(--gold); }
+  </style>
+</head>
+<body>
+
+<div class="profile-header">
+  <div class="avatar-container">
+    <div class="avatar" id="avatarBox">م</div>
+    <div class="verified-badge" id="vBadge">✔</div>
+  </div>
+  
+  <div class="name" id="dispName">جاري التحميل...</div>
+  <div class="handle" id="dispHandle">@username</div>
+  <div class="bio" id="dispBio">طالب جامعي</div>
+  
+  <div class="stats">
+    <div class="stat"><span class="stat-val" id="postCount">0</span><span class="stat-label">منشورات</span></div>
+    <div class="stat"><span class="stat-val" id="followerCount">0</span><span class="stat-label">متابعين</span></div>
+    <div class="stat"><span class="stat-val" id="followingCount">0</span><span class="stat-label">يتابع</span></div>
+  </div>
+  
+  <button class="btn-edit" onclick="alert('تعديل الملف الشخصي سيتوفر قريباً')">تعديل الملف الشخصي</button>
+</div>
+
+<div class="grid-tabs">
+  <div class="g-tab active">منشوراتي</div>
+  <div class="g-tab">إعجابات</div>
+</div>
+
+<div class="post-grid" id="profilePosts">
+  </div>
+
+<nav class="bottom-nav">
+  <a href="feed.html" class="nav-link">🏠</a>
+  <a href="inbox.html" class="nav-link">🔔</a>
+  <a href="chat.html" class="nav-link">💬</a>
+  <a href="profile.html" class="nav-link active">👤</a>
+</nav>
+
+<script>
+  const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(localStorage.getItem('userData'));
+  
+  if (!user) {
+    window.location.href = 'index.html';
+  }
+
+  // Load User Data
+  document.getElementById('dispName').innerText = user.name || 'طالب';
+  document.getElementById('dispHandle').innerText = '@' + (user.user || 'student');
+  document.getElementById('avatarBox').innerText = (user.name || user.user || 'م')[0].toUpperCase();
+  
+  if (user.isVerified || user.role === 'admin') {
+    document.getElementById('vBadge').style.display = 'flex';
+  }
+
+  // Load User Posts
+  async function loadMyPosts() {
+    try {
+      const res = await fetch('/api/posts');
+      const allPosts = await res.json();
+      
+      // Filter posts by this user
+      const myPosts = allPosts.filter(p => p.author === user.name || p.author === user.user);
+      
+      document.getElementById('postCount').innerText = myPosts.length;
+      
+      const grid = document.getElementById('profilePosts');
+      if (myPosts.length === 0) {
+        grid.style.display = 'block';
+        grid.innerHTML = '<div style="padding: 40px; text-align: center; color: #555;">لا توجد منشورات حتى الآن.</div>';
+      } else {
+        grid.innerHTML = myPosts.map(p => `
+          <div class="grid-item">${(p.content || p.text).substring(0, 30)}...</div>
+        `).join('');
+      }
+    } catch (e) {
+      console.error("Error loading profile posts");
+    }
+  }
+
+  loadMyPosts();
+</script>
+</body>
+</html>

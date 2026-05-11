@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>كلية — البريد الوارد</title>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #0a0a08; --bg2: #0e0e0b; --gold: #c9a84c; --border: rgba(201,168,76,0.12); }
+    body { background: var(--bg); color: #fff; font-family: 'Amiri', serif; margin: 0; padding-bottom: 70px; }
+    
+    .header { padding: 20px; border-bottom: 1px solid var(--border); background: var(--bg2); position: sticky; top: 0; z-index: 10; }
+    .header h2 { margin: 0; font-size: 1.3rem; color: var(--gold); }
+
+    .inbox-list { margin-top: 10px; }
+    .chat-item { 
+      display: flex; align-items: center; padding: 15px 20px; 
+      border-bottom: 1px solid var(--border); text-decoration: none; color: #fff;
+      transition: 0.2s;
+    }
+    .chat-item:hover { background: rgba(201,168,76,0.05); }
+    
+    .avatar { 
+      width: 55px; height: 55px; border-radius: 50%; background: #1a1a17; 
+      border: 1px solid var(--gold); display: flex; align-items: center; 
+      justify-content: center; font-weight: bold; margin-left: 15px; font-size: 1.2rem;
+    }
+    
+    .info { flex: 1; min-width: 0; }
+    .name-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .name { font-weight: bold; font-size: 1rem; }
+    .time { font-size: 0.75rem; color: #666; }
+    .last-msg { font-size: 0.85rem; color: #999; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    .unread-indicator { width: 10px; height: 10px; background: var(--gold); border-radius: 50%; margin-right: 10px; }
+
+    .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--bg2); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 100; }
+    .nav-link { text-decoration: none; color: #888; font-size: 1.2rem; }
+    .nav-link.active { color: var(--gold); }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h2>الرسائل الواردة</h2>
+</div>
+
+<div class="inbox-list" id="inboxList">
+  <div style="text-align:center; padding:40px; color:#444;">جاري تحميل المحادثات...</div>
+</div>
+
+<nav class="bottom-nav">
+  <a href="feed.html" class="nav-link">🏠</a>
+  <a href="inbox.html" class="nav-link active">🔔</a>
+  <a href="chat.html" class="nav-link">💬</a>
+  <a href="profile.html" class="nav-link">👤</a>
+</nav>
+
+<script>
+  const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(localStorage.getItem('userData'));
+
+  async function fetchConversations() {
+    try {
+      const res = await fetch('/api/admin/data');
+      const data = await res.json();
+      
+      // For the demo, we show other active users as chat partners
+      const others = data.users.filter(u => u.user !== user.user && u.status === 'active');
+      const container = document.getElementById('inboxList');
+      
+      if(others.length === 0) {
+          container.innerHTML = '<div style="text-align:center; padding:40px; color:#555;">لا توجد محادثات نشطة حالياً.</div>';
+          return;
+      }
+
+      container.innerHTML = others.map(u => `
+        <a href="chat.html?u=${u.user}" class="chat-item">
+          <div class="avatar">${u.name[0]}</div>
+          <div class="info">
+            <div class="name-row">
+              <span class="name">${u.name} ${u.isVerified ? '<span style="color:#42a5f5">✔️</span>' : ''}</span>
+              <span class="time">الآن</span>
+            </div>
+            <div class="last-msg">انقر لبدء مراسلة @${u.user}...</div>
+          </div>
+          <div class="unread-indicator"></div>
+        </a>
+      `).join('');
+    } catch (e) {
+      console.error("Inbox load error");
+    }
+  }
+
+  window.onload = fetchConversations;
+</script>
+</body>
+</html>

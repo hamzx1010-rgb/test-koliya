@@ -1,0 +1,17 @@
+{
+  "name": "koliya-platform",
+  "version": "1.0.0",
+  "description": "منصة كلية - نظام الطلاب وحافلات COUS",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "author": "hamzx",
+  "license": "ISC"
+}
