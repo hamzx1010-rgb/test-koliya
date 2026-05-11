@@ -14,7 +14,7 @@ const readDB = () => {
             const initial = { 
                 users: [{ user: 'admin', pass: 'owner2026', name: 'المدير', role: 'admin', status: 'active', privacy: 'public' }], 
                 posts: [], 
-                messages: [], // New: Storage for private DMs
+                messages: [],
                 banned: [] 
             };
             fs.writeFileSync(DB_PATH, JSON.stringify(initial, null, 2));
@@ -28,83 +28,88 @@ const readDB = () => {
 
 const writeDB = (data) => fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
 
-// --- POST SYNCHRONIZATION ---
-app.get('/api/posts', (req, res) => {
+// --- LOGIN CHECK (FIXED) ---
+app.post('/api/login', (req, res) => {
+    const { user, pass } = req.body;
     const db = readDB();
-    res.json(db.posts);
+    const found = db.users.find(u => u.user === user);
+
+    if (!found || found.pass !== pass) {
+        return res.status(401).json({ success: false, err: 'بيانات خاطئة' });
+    }
+
+    if (db.banned && db.banned.includes(user)) {
+        return res.status(403).json({ success: false, err: 'حسابك محظور' });
+    }
+
+    // THE FIX: Allow 'admin' role to pass even if status logic is strict
+    if (found.role !== 'admin' && found.status === 'pending') {
+        return res.status(403).json({ success: false, err: 'حسابك في انتظار تفعيل المدير' });
+    }
+
+    const { pass: _, ...userSafe } = found;
+    res.json({ success: true, user: userSafe });
 });
 
-app.post('/api/posts', (req, res) => {
-    const { author, content } = req.body;
+// --- REGISTRATION ---
+app.post('/api/register', (req, res) => {
+    const { user, pass, name, wilaya, cardId } = req.body;
     const db = readDB();
-    const newPost = {
-        id: Date.now(),
-        author,
-        content,
-        timestamp: new Date().toISOString()
-    };
-    db.posts.unshift(newPost);
-    writeDB(db);
-    res.json({ success: true, post: newPost });
-});
+    if (db.users.find(u => u.user === user)) return res.status(400).json({ err: 'موجود مسبقاً' });
 
-// --- PRIVATE MESSAGING SYSTEM (DM) ---
-
-// Get all conversations for a specific user
-app.get('/api/messages/:username', (req, res) => {
-    const db = readDB();
-    const myUser = req.params.username;
-    // Filters messages where the user is either the sender or receiver
-    const myChats = db.messages.filter(m => m.from === myUser || m.to === myUser);
-    res.json(myChats);
-});
-
-// Send a private message
-app.post('/api/messages', (req, res) => {
-    const { from, to, text } = req.body;
-    const db = readDB();
-    
-    // Check if receiver exists and is not private (unless they are already friends/contacts)
-    const receiver = db.users.find(u => u.user === to);
-    if (!receiver) return res.status(404).json({ err: 'المستخدم غير موجود' });
-
-    const newMessage = {
-        id: Date.now(),
-        from,
-        to,
-        text,
-        time: new Date().toISOString()
-    };
-    
-    db.messages.push(newMessage);
+    db.users.push({
+        user, pass, name, wilaya, cardId,
+        role: 'student',
+        status: 'pending',
+        privacy: 'public',
+        joinedAt: new Date().toISOString()
+    });
     writeDB(db);
     res.json({ success: true });
 });
 
-// --- PROFILE & PRIVACY ---
-app.post('/api/user/update-privacy', (req, res) => {
-    const { user, privacy } = req.body; // privacy: 'public' or 'private'
+// --- POSTS ---
+app.get('/api/posts', (req, res) => res.json(readDB().posts));
+app.post('/api/posts', (req, res) => {
     const db = readDB();
-    const u = db.users.find(u => u.user === user);
-    if (u) {
-        u.privacy = privacy;
-        writeDB(db);
-        res.json({ success: true });
-    } else {
-        res.status(404).send();
+    const newPost = { id: Date.now(), author: req.body.author, content: req.body.content };
+    db.posts.unshift(newPost);
+    writeDB(db);
+    res.json({ success: true });
+});
+
+// --- MESSAGING ---
+app.get('/api/messages/:username', (req, res) => {
+    const db = readDB();
+    const chats = db.messages.filter(m => m.from === req.params.username || m.to === req.params.username);
+    res.json(chats);
+});
+
+app.post('/api/messages', (req, res) => {
+    const db = readDB();
+    db.messages.push({ id: Date.now(), ...req.body, time: new Date().toISOString() });
+    writeDB(db);
+    res.json({ success: true });
+});
+
+// --- ADMIN DATA & ACTIONS ---
+app.get('/api/admin/data', (req, res) => res.json(readDB()));
+
+app.post('/api/admin/action', (req, res) => {
+    const { type, target } = req.body;
+    let db = readDB();
+    if (type === 'approve') {
+        const u = db.users.find(u => u.user === target);
+        if (u) u.status = 'active';
+    } else if (type === 'ban') {
+        if (!db.banned.includes(target)) db.banned.push(target);
+    } else if (type === 'unban') {
+        db.banned = db.banned.filter(u => u !== target);
+    } else if (type === 'deletePost') {
+        db.posts = db.posts.filter(p => p.id.toString() !== target.toString());
     }
+    writeDB(db);
+    res.json({ success: true });
 });
 
-// Search/Get Profile info
-app.get('/api/user/:username', (req, res) => {
-    const db = readDB();
-    const u = db.users.find(u => u.user === req.params.username);
-    if (!u) return res.status(404).send();
-    
-    // Don't send password
-    const { pass, ...safeUser } = u;
-    res.json(safeUser);
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server synchronized on port ${PORT}`));
+app.listen(3000, () => console.log('Server Fixed & Running'));
