@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المحادثات | كُلِّيَة</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;700;900&family=Tajawal:wght@300;400;500;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080806;
+      --card: #0e0e0b;
+      --card2: #131310;
+      --gold: #c9a84c;
+      --gold2: #e8c76a;
+      --gold-dim: rgba(201,168,76,0.12);
+      --gold-glow: rgba(201,168,76,0.25);
+      --text: #f5f0e8;
+      --text-dim: #9e9880;
+      --border: rgba(201,168,76,0.15);
+      --border-bright: rgba(201,168,76,0.35);
+      --bottom-h: 65px;
+      --nav-h: 56px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Tajawal', sans-serif;
+      min-height: 100vh;
+      padding-bottom: var(--bottom-h);
+    }
+
+    /* TOP NAV */
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: rgba(8,8,6,0.95);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      height: var(--nav-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+    }
+
+    .top-nav-title {
+      font-family: 'Noto Kufi Arabic', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: var(--gold);
+    }
+
+    .top-nav-btn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 1.1rem;
+      cursor: pointer;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s, color 0.2s;
+      position: relative;
+    }
+    .top-nav-btn:hover { background: var(--gold-dim); color: var(--gold); }
+
+    .notif-dot {
+      position: absolute;
+      top: 5px; left: 5px;
+      width: 8px; height: 8px;
+      background: var(--gold);
+      border-radius: 50%;
+      border: 2px solid var(--bg);
+      animation: pulse 2s infinite;
+      display: none;
+    }
+    @keyframes pulse {
+      0%,100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.7; }
+    }
+
+    /* TABS */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8,8,6,0.92);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: var(--nav-h);
+      z-index: 100;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 13px 10px;
+      text-align: center;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+      position: relative;
+    }
+    .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .tab:hover:not(.active) { color: var(--text); }
+
+    .tab-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--gold);
+      color: #000;
+      font-size: 0.6rem;
+      font-weight: 700;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+
+    /* PANELS */
+    .panel { display: none; }
+    .panel.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* CONVERSATIONS */
+    .chat-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s;
+      gap: 14px;
+    }
+    .chat-item:hover { background: var(--gold-dim); }
+    .chat-item.unread { background: rgba(201,168,76,0.04); }
+
+    .avatar {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.06));
+      border: 1.5px solid var(--border-bright);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Noto Kufi Arabic', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--gold);
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .online-dot {
+      position: absolute;
+      bottom: 1px; left: 1px;
+      width: 12px; height: 12px;
+      background: #4ca87a;
+      border-radius: 50%;
+      border: 2px solid var(--bg);
+    }
+
+    .chat-info { flex: 1; min-width: 0; }
+
+    .chat-name-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .chat-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .chat-name .verified { color: #42a5f5; font-size: 0.75rem; }
+    .chat-time { font-size: 0.72rem; color: var(--text-dim); }
+
+    .chat-preview {
+      font-size: 0.83rem;
+      color: var(--text-dim);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .chat-item.unread .chat-preview { color: var(--text); font-weight: 500; }
+
+    .unread-badge {
+      background: var(--gold);
+      color: #000;
+      font-size: 0.65rem;
+      font-weight: 700;
+      min-width: 18px; height: 18px;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 4px;
+      flex-shrink: 0;
+    }
+
+    /* NOTIFICATIONS */
+    .notif-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+      animation: fadeIn 0.35s ease both;
+    }
+    .notif-item:hover { background: var(--gold-dim); }
+    .notif-item.unread { background: rgba(201,168,76,0.05); }
+
+    .notif-icon {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: var(--gold-dim);
+      border: 1px solid var(--border-bright);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-text {
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+    .notif-text strong { color: var(--gold); }
+    .notif-time { font-size: 0.72rem; color: var(--text-dim); }
+
+    .notif-unread-dot {
+      width: 8px; height: 8px;
+      background: var(--gold);
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+
+    /* FOLLOW REQUEST CARD */
+    .follow-req {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      animation: fadeIn 0.35s ease both;
+    }
+
+    .req-actions { display: flex; gap: 8px; margin-right: auto; }
+
+    .btn-accept {
+      background: var(--gold);
+      color: #000;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-accept:hover { background: var(--gold2); }
+
+    .btn-decline {
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid var(--border-bright);
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .btn-decline:hover { color: #e05a5a; border-color: #e05a5a; }
+
+    /* EMPTY STATE */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-dim);
+    }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .empty-state p { font-size: 0.9rem; }
+
+    /* SHIMMER */
+    .shimmer {
+      background: linear-gradient(90deg, var(--card) 25%, var(--card2) 50%, var(--card) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .shimmer-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 18px; border-bottom: 1px solid var(--border);
+    }
+
+    /* BOTTOM NAV */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: var(--bottom-h);
+      background: rgba(8,8,6,0.95);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      z-index: 200;
+    }
+
+    .bottom-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 8px 0;
+      color: var(--text-dim);
+      transition: color 0.2s;
+      position: relative;
+    }
+    .bottom-item.active { color: var(--gold); }
+    .bottom-item:hover:not(.active) { color: var(--text); }
+    .bottom-icon { font-size: 1.2rem; line-height: 1; }
+    .bottom-label { font-size: 0.65rem; font-weight: 500; }
+
+    .bottom-item.active::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 20%; right: 20%;
+      height: 2px;
+      background: var(--gold);
+      border-radius: 0 0 3px 3px;
+      box-shadow: 0 0 8px rgba(201,168,76,0.6);
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+  <!-- TOP NAV -->
+  <div class="top-nav">
+    <div class="top-nav-title">كُلِّيَة</div>
+    <button class="top-nav-btn" onclick="switchTab('notifs')" title="الإشعارات">
+      🔔
+      <span class="notif-dot" id="notifDot"></span>
+    </button>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" id="tab-chats" onclick="switchTab('chats')">
+      المحادثات
+    </div>
+    <div class="tab" id="tab-notifs" onclick="switchTab('notifs')">
+      <span id="notifBadge" class="tab-badge" style="display:none">0</span>
+      الإشعارات
+    </div>
+    <div class="tab" id="tab-requests" onclick="switchTab('requests')">
+      <span id="reqBadge" class="tab-badge" style="display:none">0</span>
+      الطلبات
+    </div>
+  </div>
+
+  <!-- CHATS PANEL -->
+  <div class="panel active" id="panel-chats">
+    <div id="chatsList">
+      <div class="shimmer-row">
+        <div class="shimmer" style="width:52px;height:52px;border-radius:50%;flex-shrink:0"></div>
+        <div style="flex:1"><div class="shimmer" style="width:40%;height:14px;margin-bottom:8px"></div><div class="shimmer" style="width:70%;height:12px"></div></div>
+      </div>
+      <div class="shimmer-row">
+        <div class="shimmer" style="width:52px;height:52px;border-radius:50%;flex-shrink:0"></div>
+        <div style="flex:1"><div class="shimmer" style="width:35%;height:14px;margin-bottom:8px"></div><div class="shimmer" style="width:60%;height:12px"></div></div>
+      </div>
+      <div class="shimmer-row">
+        <div class="shimmer" style="width:52px;height:52px;border-radius:50%;flex-shrink:0"></div>
+        <div style="flex:1"><div class="shimmer" style="width:50%;height:14px;margin-bottom:8px"></div><div class="shimmer" style="width:55%;height:12px"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS PANEL -->
+  <div class="panel" id="panel-notifs">
+    <div id="notifsList">
+      <div class="empty-state"><div class="icon">🔔</div><p>لا توجد إشعارات بعد</p></div>
+    </div>
+  </div>
+
+  <!-- REQUESTS PANEL -->
+  <div class="panel" id="panel-requests">
+    <div id="requestsList">
+      <div class="empty-state"><div class="icon">👥</div><p>لا توجد طلبات معلقة</p></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-bar">
+    <div class="bottom-item" onclick="location.href='feed.html'">
+      <div class="bottom-icon">🏠</div>
+      <div class="bottom-label">الرئيسية</div>
+    </div>
+    <div class="bottom-item" onclick="location.href='search.html'">
+      <div class="bottom-icon">🔍</div>
+      <div class="bottom-label">بحث</div>
+    </div>
+    <div class="bottom-item active">
+      <div class="bottom-icon">💬</div>
+      <div class="bottom-label">محادثات</div>
+    </div>
+    <div class="bottom-item" id="profileNavBtn">
+      <div class="bottom-icon">👤</div>
+      <div class="bottom-label">ملفي</div>
+    </div>
+  </div>
+
+<script>
+  const myData = JSON.parse(localStorage.getItem('userData'));
+  if (!myData) window.location.href = 'index.html';
+
+  document.getElementById('profileNavBtn').onclick = () => {
+    location.href = 'profile.html?u=' + myData.user;
+  };
+
+  let currentTab = 'chats';
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    document.getElementById('panel-' + tab).classList.add('active');
+
+    if (tab === 'notifs') {
+      loadNotifications();
+      // Mark as read
+      fetch('/api/notifications/read', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ user: myData.user })
+      }).catch(() => {});
+      document.getElementById('notifDot').style.display = 'none';
+      document.getElementById('notifBadge').style.display = 'none';
+    } else if (tab === 'requests') {
+      loadRequests();
+      document.getElementById('reqBadge').style.display = 'none';
+    }
+  }
+
+  // LOAD CONVERSATIONS
+  async function loadChats() {
+    try {
+      const [msgsRes, usersRes] = await Promise.all([
+        fetch(`/api/messages/${myData.user}`),
+        fetch('/api/admin/data')
+      ]);
+      const allMsgs = await msgsRes.json();
+      const { users } = await usersRes.json();
+
+      // Build conversation map: last message per partner
+      const convMap = {};
+      allMsgs.forEach(m => {
+        const partner = m.from === myData.user ? m.to : m.from;
+        if (!convMap[partner] || new Date(m.time) > new Date(convMap[partner].time)) {
+          convMap[partner] = m;
+        }
+      });
+
+      // Sort by most recent
+      const partners = Object.keys(convMap).sort((a, b) =>
+        new Date(convMap[b].time) - new Date(convMap[a].time)
+      );
+
+      const container = document.getElementById('chatsList');
+
+      if (!partners.length) {
+        // Show all active users to start a chat
+        const others = users.filter(u => u.user !== myData.user && u.status === 'active');
+        if (!others.length) {
+          container.innerHTML = `<div class="empty-state"><div class="icon">💬</div><p>لا يوجد مستخدمون نشطون بعد</p></div>`;
+          return;
+        }
+        container.innerHTML = others.map(u => `
+          <div class="chat-item" onclick="location.href='chat.html?with=${u.user}'">
+            <div class="avatar">${u.name[0]}</div>
+            <div class="chat-info">
+              <div class="chat-name-row">
+                <span class="chat-name">${u.name} ${u.isVerified ? '<span class="verified">✔</span>' : ''}</span>
+              </div>
+              <div class="chat-preview">ابدأ محادثة مع @${u.user}</div>
+            </div>
+          </div>`).join('');
+        return;
+      }
+
+      container.innerHTML = partners.map(partner => {
+        const lastMsg = convMap[partner];
+        const userInfo = users.find(u => u.user === partner) || { name: partner, user: partner };
+        const isUnread = lastMsg.to === myData.user && !lastMsg.read;
+        const timeStr = formatTime(lastMsg.time);
+        const preview = lastMsg.from === myData.user ? `أنت: ${lastMsg.text}` : lastMsg.text;
+
+        return `
+          <div class="chat-item ${isUnread ? 'unread' : ''}" onclick="location.href='chat.html?with=${partner}'">
+            <div class="avatar">
+              ${userInfo.name[0]}
+            </div>
+            <div class="chat-info">
+              <div class="chat-name-row">
+                <span class="chat-name">${userInfo.name} ${userInfo.isVerified ? '<span class="verified">✔</span>' : ''}</span>
+                <span class="chat-time">${timeStr}</span>
+              </div>
+              <div class="chat-preview">${preview}</div>
+            </div>
+            ${isUnread ? '<div class="unread-badge">1</div>' : ''}
+          </div>`;
+      }).join('');
+
+    } catch(e) {
+      document.getElementById('chatsList').innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>تعذّر تحميل المحادثات</p></div>`;
+    }
+  }
+
+  // LOAD NOTIFICATIONS
+  async function loadNotifications() {
+    try {
+      const res = await fetch(`/api/notifications?user=${myData.user}`);
+      const notifs = await res.json();
+      const container = document.getElementById('notifsList');
+
+      if (!notifs.length) {
+        container.innerHTML = `<div class="empty-state"><div class="icon">🔔</div><p>لا توجد إشعارات بعد</p></div>`;
+        return;
+      }
+
+      const icons = { like: '❤️', repost: '🔁', follow: '👤', message: '✉️', default: '🔔' };
+
+      const labels = {
+        like: 'أعجب بمنشورك',
+        repost: 'أعاد نشر منشورك',
+        follow: 'بدأ بمتابعتك',
+        message: 'أرسل لك رسالة'
+      };
+
+      container.innerHTML = notifs.map((n, i) => `
+        <div class="notif-item ${n.read ? '' : 'unread'}" style="animation-delay:${i*0.05}s"
+          onclick="${n.type === 'message' ? `location.href='chat.html?with=${n.from}'` : `location.href='profile.html?u=${n.from}'`}">
+          <div class="notif-icon">${icons[n.type] || icons.default}</div>
+          <div class="notif-body">
+            <div class="notif-text"><strong>${n.from}</strong> ${labels[n.type] || 'تفاعل مع حسابك'}</div>
+            <div class="notif-time">${formatTime(n.time)}</div>
+          </div>
+          ${!n.read ? '<div class="notif-unread-dot"></div>' : ''}
+        </div>`).join('');
+
+    } catch(e) {
+      document.getElementById('notifsList').innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>تعذّر تحميل الإشعارات</p></div>`;
+    }
+  }
+
+  // LOAD FOLLOW REQUESTS (for private accounts)
+  async function loadRequests() {
+    try {
+      const res = await fetch(`/api/user/${myData.user}`);
+      const userData = await res.json();
+      const requests = userData.followRequests || [];
+      const container = document.getElementById('requestsList');
+
+      if (!requests.length) {
+        container.innerHTML = `<div class="empty-state"><div class="icon">👥</div><p>لا توجد طلبات متابعة معلقة</p></div>`;
+        return;
+      }
+
+      // Fetch requester names
+      const userRes = await fetch('/api/admin/data');
+      const { users } = await userRes.json();
+
+      container.innerHTML = requests.map((reqUser, i) => {
+        const info = users.find(u => u.user === reqUser) || { name: reqUser, user: reqUser };
+        return `
+          <div class="follow-req" style="animation-delay:${i*0.06}s">
+            <div class="avatar" style="width:46px;height:46px;font-size:1rem">${info.name[0]}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:700;font-size:0.9rem">${info.name}</div>
+              <div style="color:var(--text-dim);font-size:0.78rem">@${info.user}</div>
+            </div>
+            <div class="req-actions">
+              <button class="btn-accept" onclick="handleRequest('${reqUser}','accept',this)">قبول</button>
+              <button class="btn-decline" onclick="handleRequest('${reqUser}','decline',this)">رفض</button>
+            </div>
+          </div>`;
+      }).join('');
+
+    } catch(e) {
+      document.getElementById('requestsList').innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>تعذّر تحميل الطلبات</p></div>`;
+    }
+  }
+
+  async function handleRequest(from, action, btn) {
+    btn.parentElement.querySelectorAll('button').forEach(b => b.disabled = true);
+    try {
+      await fetch('/api/follow/respond', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ from, to: myData.user, action })
+      });
+      btn.closest('.follow-req').style.opacity = '0.4';
+      setTimeout(() => loadRequests(), 600);
+    } catch(e) {}
+  }
+
+  // CHECK UNREAD COUNT
+  async function checkUnread() {
+    try {
+      const res = await fetch(`/api/notifications?user=${myData.user}`);
+      const notifs = await res.json();
+      const unread = notifs.filter(n => !n.read).length;
+      if (unread > 0) {
+        document.getElementById('notifDot').style.display = 'block';
+        const badge = document.getElementById('notifBadge');
+        badge.textContent = unread > 9 ? '9+' : unread;
+        badge.style.display = 'inline-flex';
+      }
+
+      // Follow requests
+      const uRes = await fetch(`/api/user/${myData.user}`);
+      const userData = await uRes.json();
+      const reqCount = userData.followRequests?.length || 0;
+      if (reqCount > 0) {
+        const rb = document.getElementById('reqBadge');
+        rb.textContent = reqCount;
+        rb.style.display = 'inline-flex';
+      }
+    } catch(e) {}
+  }
+
+  function formatTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const now = new Date();
+    const diff = (now - d) / 1000;
+    if (diff < 60) return 'الآن';
+    if (diff < 3600) return `${Math.floor(diff/60)} د`;
+    if (diff < 86400) return `${Math.floor(diff/3600)} س`;
+    if (diff < 604800) return `${Math.floor(diff/86400)} ي`;
+    return d.toLocaleDateString('ar-DZ', { month: 'short', day: 'numeric' });
+  }
+
+  // INIT
+  loadChats();
+  checkUnread();
+  setInterval(loadChats, 10000);
+  setInterval(checkUnread, 15000);
+</script>
+</body>
+</html>
