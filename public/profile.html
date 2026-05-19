@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الملف الشخصي | كُلِّيَة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;700;900&family=Tajawal:wght@300;400;500;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #080806;
+            --card: #0e0e0b;
+            --card2: #131310;
+            --gold: #c9a84c;
+            --gold2: #e8c76a;
+            --gold-dim: rgba(201,168,76,0.12);
+            --gold-glow: rgba(201,168,76,0.25);
+            --text: #f5f0e8;
+            --text-dim: #9e9880;
+            --border: rgba(201,168,76,0.15);
+            --border-bright: rgba(201,168,76,0.35);
+            --red: #e05a5a;
+            --bottom-h: 65px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Tajawal', sans-serif;
+            min-height: 100vh;
+            padding-bottom: calc(var(--bottom-h) + 10px);
+            overflow-x: hidden;
+        }
+
+        /* TOP BAR */
+        .top-bar {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            background: rgba(8,8,6,0.92);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            height: 56px;
+        }
+
+        .top-bar-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+        .top-bar-btn:hover { background: var(--gold-dim); color: var(--gold); }
+
+        .top-bar-title {
+            font-family: 'Noto Kufi Arabic', sans-serif;
+            font-size: 1rem;
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        /* COVER + AVATAR */
+        .cover {
+            height: 140px;
+            background: linear-gradient(135deg, #0e0e0b 0%, #1a160a 50%, #0e0e0b 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cover::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 30% 50%, rgba(201,168,76,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(201,168,76,0.08) 0%, transparent 50%);
+        }
+
+        .cover-pattern {
+            position: absolute;
+            inset: 0;
+            opacity: 0.04;
+            background-image: repeating-linear-gradient(
+                45deg,
+                var(--gold) 0px,
+                var(--gold) 1px,
+                transparent 1px,
+                transparent 20px
+            );
+        }
+
+        .avatar-wrap {
+            position: absolute;
+            bottom: -46px;
+            right: 20px;
+        }
+
+        .avatar {
+            width: 90px; height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1a160a, #2a2010);
+            border: 3px solid var(--bg);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Noto Kufi Arabic', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--gold);
+            box-shadow: 0 0 0 2px var(--border-bright), 0 8px 24px rgba(0,0,0,0.6);
+            position: relative;
+        }
+
+        .verified-badge {
+            position: absolute;
+            bottom: 2px; left: 2px;
+            width: 22px; height: 22px;
+            background: #42a5f5;
+            border-radius: 50%;
+            border: 2px solid var(--bg);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.6rem;
+            color: #fff;
+        }
+
+        /* PROFILE INFO */
+        .profile-info {
+            padding: 56px 20px 16px;
+            position: relative;
+        }
+
+        .profile-actions-row {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-follow {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        }
+        .btn-follow:hover { background: var(--gold2); box-shadow: 0 4px 14px var(--gold-glow); transform: translateY(-1px); }
+        .btn-follow.following {
+            background: transparent;
+            border: 1.5px solid var(--border-bright);
+            color: var(--text);
+        }
+        .btn-follow.following:hover { border-color: var(--red); color: var(--red); }
+
+        .btn-message {
+            background: var(--gold-dim);
+            color: var(--gold);
+            border: 1.5px solid var(--border-bright);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .btn-message:hover { background: var(--gold); color: #000; }
+
+        .btn-edit {
+            background: var(--gold-dim);
+            color: var(--gold);
+            border: 1.5px solid var(--border-bright);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-edit:hover { background: var(--gold); color: #000; }
+
+        .profile-name {
+            font-family: 'Noto Kufi Arabic', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+
+        .profile-handle {
+            color: var(--text-dim);
+            font-size: 0.88rem;
+            margin-bottom: 10px;
+        }
+
+        .profile-bio {
+            font-family: 'Amiri', serif;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+
+        .profile-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-dim);
+            font-size: 0.82rem;
+        }
+        .meta-item span { color: var(--gold); }
+
+        /* STATS */
+        .stats-row {
+            display: flex;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 0;
+            margin: 0 20px;
+        }
+
+        .stat {
+            flex: 1;
+            text-align: center;
+            cursor: pointer;
+        }
+        .stat:not(:last-child) { border-left: 1px solid var(--border); }
+
+        .stat-num {
+            font-family: 'Noto Kufi Arabic', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--gold);
+            display: block;
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            display: block;
+            margin-top: 2px;
+        }
+
+        /* TABS */
+        .profile-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-top: 6px;
+            position: sticky;
+            top: 56px;
+            background: rgba(8,8,6,0.92);
+            backdrop-filter: blur(12px);
+            z-index: 100;
+        }
+
+        .profile-tab {
+            flex: 1;
+            padding: 14px 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .profile-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+        .profile-tab:hover:not(.active) { color: var(--text); }
+
+        /* POSTS */
+        .posts-container { padding: 10px 14px; }
+
+        .post-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 12px;
+            animation: fadeUp 0.4s ease both;
+            transition: border-color 0.2s;
+        }
+        .post-card:hover { border-color: var(--border-bright); }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .post-card:nth-child(1) { animation-delay: 0.05s; }
+        .post-card:nth-child(2) { animation-delay: 0.1s; }
+        .post-card:nth-child(3) { animation-delay: 0.15s; }
+
+        .post-content {
+            font-family: 'Amiri', serif;
+            font-size: 1.05rem;
+            line-height: 1.75;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+
+        .repost-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+
+        .post-footer {
+            display: flex;
+            gap: 18px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        .post-action {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-dim);
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            user-select: none;
+        }
+        .post-action:hover { color: var(--gold); }
+        .post-action.liked { color: #e05a5a; }
+
+        .post-time { color: var(--text-dim); font-size: 0.75rem; margin-right: auto; }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-dim);
+        }
+        .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .empty-state p { font-size: 0.9rem; }
+
+        /* 3-DOT MENU */
+        .dots-menu-wrap { position: relative; }
+
+        .dots-dropdown {
+            position: absolute;
+            top: 44px;
+            left: 0;
+            background: var(--card2);
+            border: 1px solid var(--border-bright);
+            border-radius: 12px;
+            min-width: 180px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+            overflow: hidden;
+            display: none;
+            z-index: 300;
+            animation: dropIn 0.2s ease;
+        }
+        .dots-dropdown.open { display: block; }
+
+        @keyframes dropIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .drop-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 13px 16px;
+            font-size: 0.9rem;
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.15s;
+            border-bottom: 1px solid var(--border);
+        }
+        .drop-item:last-child { border-bottom: none; }
+        .drop-item:hover { background: var(--gold-dim); }
+        .drop-item.danger { color: var(--red); }
+        .drop-item.danger:hover { background: rgba(224,90,90,0.08); }
+
+        /* PRIVATE NOTICE */
+        .private-notice {
+            margin: 20px 14px;
+            background: rgba(224,90,90,0.08);
+            border: 1px solid rgba(224,90,90,0.3);
+            color: var(--red);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* BLOCKED NOTICE */
+        .blocked-notice {
+            margin: 20px 14px;
+            background: rgba(158,152,128,0.08);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        /* SHIMMER */
+        .shimmer {
+            background: linear-gradient(90deg, var(--card) 25%, var(--card2) 50%, var(--card) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 6px;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: calc(var(--bottom-h) + 20px);
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--card2);
+            border: 1px solid var(--border-bright);
+            color: var(--text);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 999;
+            white-space: nowrap;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* BOTTOM NAV */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: var(--bottom-h);
+            background: rgba(8,8,6,0.95);
+            backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            z-index: 200;
+        }
+
+        .bottom-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            padding: 8px 0;
+            color: var(--text-dim);
+            transition: color 0.2s;
+            position: relative;
+        }
+        .bottom-item.active { color: var(--gold); }
+        .bottom-item:hover:not(.active) { color: var(--text); }
+        .bottom-icon { font-size: 1.2rem; line-height: 1; }
+        .bottom-label { font-size: 0.65rem; font-weight: 500; }
+
+        .bottom-item.active::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 20%; right: 20%;
+            height: 2px;
+            background: var(--gold);
+            border-radius: 0 0 3px 3px;
+            box-shadow: 0 0 8px rgba(201,168,76,0.6);
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <!-- TOP BAR -->
+    <div class="top-bar">
+        <button class="top-bar-btn" onclick="history.back()">→</button>
+        <div class="top-bar-title" id="topBarName">الملف الشخصي</div>
+        <div class="dots-menu-wrap" id="dotsWrap" style="display:none">
+            <button class="top-bar-btn" onclick="toggleDots()">⋯</button>
+            <div class="dots-dropdown" id="dotsDropdown">
+                <!-- filled by JS -->
+            </div>
+        </div>
+        <div id="dotsPlaceholder" style="width:38px"></div>
+    </div>
+
+    <!-- COVER -->
+    <div class="cover">
+        <div class="cover-pattern"></div>
+        <div class="avatar-wrap">
+            <div class="avatar" id="profileAvatar">؟
+                <div class="verified-badge" id="verifiedBadge" style="display:none">✓</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE INFO -->
+    <div class="profile-info" id="profileInfo">
+        <div class="profile-actions-row" id="actionsRow"></div>
+        <div class="profile-name" id="profileName">
+            <span class="shimmer" style="width:140px;height:22px;display:inline-block"></span>
+        </div>
+        <div class="profile-handle" id="profileHandle">
+            <span class="shimmer" style="width:90px;height:14px;display:inline-block"></span>
+        </div>
+        <div class="profile-bio" id="profileBio"></div>
+        <div class="profile-meta" id="profileMeta"></div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row" id="statsRow">
+        <div class="stat">
+            <span class="stat-num" id="statPosts">—</span>
+            <span class="stat-label">منشور</span>
+        </div>
+        <div class="stat">
+            <span class="stat-num" id="statFollowers">—</span>
+            <span class="stat-label">متابِع</span>
+        </div>
+        <div class="stat">
+            <span class="stat-num" id="statFollowing">—</span>
+            <span class="stat-label">متابَع</span>
+        </div>
+    </div>
+
+    <!-- CONTENT (posts/private/blocked) -->
+    <div id="mainContent"></div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-bar">
+        <div class="bottom-item" onclick="location.href='feed.html'">
+            <div class="bottom-icon">🏠</div>
+            <div class="bottom-label">الرئيسية</div>
+        </div>
+        <div class="bottom-item" onclick="location.href='search.html'">
+            <div class="bottom-icon">🔍</div>
+            <div class="bottom-label">بحث</div>
+        </div>
+        <div class="bottom-item" onclick="location.href='inbox.html'">
+            <div class="bottom-icon">💬</div>
+            <div class="bottom-label">محادثات</div>
+        </div>
+        <div class="bottom-item active">
+            <div class="bottom-icon">👤</div>
+            <div class="bottom-label">ملفي</div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetUser = urlParams.get('u');
+    const myData = JSON.parse(localStorage.getItem('userData'));
+
+    if (!myData) window.location.href = 'index.html';
+    if (!targetUser) window.location.href = `profile.html?u=${myData.user}`;
+
+    const isOwn = myData.user === targetUser;
+    let currentTab = 'posts';
+    let profileData = null;
+    let isFollowing = false;
+    let isBlocked = false;
+
+    // Dots menu
+    function toggleDots() {
+        document.getElementById('dotsDropdown').classList.toggle('open');
+    }
+    document.addEventListener('click', e => {
+        const wrap = document.getElementById('dotsWrap');
+        if (wrap && !wrap.contains(e.target)) {
+            document.getElementById('dotsDropdown').classList.remove('open');
+        }
+    });
+
+    function buildDotsMenu() {
+        const dd = document.getElementById('dotsDropdown');
+        if (isOwn) {
+            dd.innerHTML = `
+                <div class="drop-item" onclick="shareProfile()">🔗 مشاركة الملف</div>
+            `;
+        } else {
+            dd.innerHTML = `
+                <div class="drop-item" onclick="toggleFollow()">
+                    ${isFollowing ? '➖ إلغاء المتابعة' : '➕ متابعة'}
+                </div>
+                <div class="drop-item danger" onclick="blockUser()">🚫 حظر المستخدم</div>
+                <div class="drop-item danger" onclick="reportUser()">⚑ الإبلاغ عن المستخدم</div>
+            `;
+        }
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    function shareProfile() {
+        const url = `${location.origin}/profile.html?u=${targetUser}`;
+        if (navigator.share) navigator.share({ title: profileData?.name, url });
+        else { navigator.clipboard?.writeText(url); showToast('تم نسخ الرابط'); }
+        toggleDots();
+    }
+
+    async function toggleFollow() {
+        isFollowing = !isFollowing;
+        toggleDots();
+        updateFollowBtn();
+        buildDotsMenu();
+        showToast(isFollowing ? 'تمت المتابعة' : 'تم إلغاء المتابعة');
+        try {
+            await fetch('/api/follow', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ from: myData.user, to: targetUser, action: isFollowing ? 'follow' : 'unfollow' })
+            });
+            loadProfile(); // refresh counts
+        } catch(e) {}
+    }
+
+    async function blockUser() {
+        toggleDots();
+        if (!confirm('هل تريد حظر هذا المستخدم؟')) return;
+        try {
+            await fetch('/api/block', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ from: myData.user, target: targetUser })
+            });
+        } catch(e) {}
+        showToast('تم الحظر');
+        setTimeout(() => history.back(), 1500);
+    }
+
+    async function reportUser() {
+        toggleDots();
+        const reason = prompt('سبب الإبلاغ (اختياري):');
+        try {
+            await fetch('/api/report', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ from: myData.user, target: targetUser, reason: reason || '' })
+            });
+        } catch(e) {}
+        showToast('تم إرسال البلاغ، شكراً لك');
+    }
+
+    function updateFollowBtn() {
+        const btn = document.getElementById('followBtn');
+        if (!btn) return;
+        btn.textContent = isFollowing ? 'تتابعه ✓' : 'متابعة';
+        btn.className = 'btn-follow' + (isFollowing ? ' following' : '');
+    }
+
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+        renderTabContent();
+    }
+
+    async function renderTabContent() {
+        const container = document.getElementById('mainContent');
+        if (!profileData) return;
+
+        if (isBlocked) {
+            container.innerHTML = `<div class="blocked-notice"><div style="font-size:2rem;margin-bottom:10px">🚫</div><p>هذا الحساب محظور</p></div>`;
+            return;
+        }
+
+        if (profileData.privacy === 'private' && !isOwn && !isFollowing) {
+            container.innerHTML = `
+                <div class="profile-tabs">
+                    <div class="profile-tab active">منشورات</div>
+                </div>
+                <div class="private-notice">🔒 هذا الحساب خاص. تابعه لرؤية منشوراته.</div>`;
+            return;
+        }
+
+        // Tabs
+        let tabsHtml = `
+            <div class="profile-tabs">
+                <div class="profile-tab ${currentTab==='posts'?'active':''}" data-tab="posts" onclick="switchTab('posts')">منشورات</div>
+                <div class="profile-tab ${currentTab==='reposts'?'active':''}" data-tab="reposts" onclick="switchTab('reposts')">إعادة نشر</div>
+            </div>
+            <div class="posts-container" id="postsContainer">
+                <div class="shimmer" style="height:80px;border-radius:12px;margin-bottom:12px"></div>
+                <div class="shimmer" style="height:80px;border-radius:12px;margin-bottom:12px"></div>
+            </div>`;
+        container.innerHTML = tabsHtml;
+
+        try {
+            const res = await fetch('/api/posts');
+            const allPosts = await res.json();
+            const postsContainer = document.getElementById('postsContainer');
+
+            if (currentTab === 'posts') {
+                const userPosts = allPosts.filter(p => p.author === targetUser);
+                document.getElementById('statPosts').textContent = userPosts.length;
+
+                if (!userPosts.length) {
+                    postsContainer.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>لا توجد منشورات بعد</p></div>`;
+                    return;
+                }
+
+                postsContainer.innerHTML = userPosts.map((p, i) => `
+                    <div class="post-card" style="animation-delay:${i*0.07}s">
+                        <div class="post-content">${p.content}</div>
+                        <div class="post-footer">
+                            <div class="post-action" onclick="likePost(this,'${p.id}')">
+                                <span>🤍</span> <span>${p.likes||0}</span>
+                            </div>
+                            <div class="post-action" onclick="location.href='post.html?id=${p.id}'">
+                                <span>💬</span> <span>${p.comments||0}</span>
+                            </div>
+                            <div class="post-action" onclick="repostPost('${p.id}')">
+                                <span>🔁</span> <span>${p.reposts||0}</span>
+                            </div>
+                            <span class="post-time">${new Date(p.id).toLocaleDateString('ar-DZ')}</span>
+                        </div>
+                    </div>`).join('');
+
+            } else {
+                // Reposts
+                const reposts = allPosts.filter(p => p.repostedBy === targetUser || (p.reposts && p.repostedByList?.includes(targetUser)));
+                if (!reposts.length) {
+                    postsContainer.innerHTML = `<div class="empty-state"><div class="icon">🔁</div><p>لا توجد إعادة نشر بعد</p></div>`;
+                    return;
+                }
+                postsContainer.innerHTML = reposts.map((p, i) => `
+                    <div class="post-card" style="animation-delay:${i*0.07}s">
+                        <div class="repost-label">🔁 أعاد النشر</div>
+                        <div class="post-content">${p.content}</div>
+                        <div class="post-footer">
+                            <div class="post-action"><span>🤍</span> <span>${p.likes||0}</span></div>
+                            <div class="post-action"><span>💬</span> <span>${p.comments||0}</span></div>
+                            <span class="post-time">${new Date(p.id).toLocaleDateString('ar-DZ')}</span>
+                        </div>
+                    </div>`).join('');
+            }
+        } catch(e) {
+            document.getElementById('postsContainer').innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>تعذّر تحميل المنشورات</p></div>`;
+        }
+    }
+
+    async function likePost(el, postId) {
+        el.classList.toggle('liked');
+        el.querySelector('span:first-child').textContent = el.classList.contains('liked') ? '❤️' : '🤍';
+        try {
+            await fetch(`/api/posts/${postId}/like`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user: myData.user }) });
+        } catch(e) {}
+    }
+
+    async function repostPost(postId) {
+        try {
+            await fetch(`/api/posts/${postId}/repost`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user: myData.user }) });
+            showToast('تم إعادة النشر');
+        } catch(e) { showToast('تعذّر إعادة النشر'); }
+    }
+
+    async function loadProfile() {
+        try {
+            const res = await fetch(`/api/user/${targetUser}`);
+            if (!res.ok) {
+                document.getElementById('profileInfo').innerHTML = `<div class="empty-state"><div class="icon">❓</div><p>المستخدم غير موجود</p></div>`;
+                return;
+            }
+            profileData = await res.json();
+
+            // Check follow status
+            isFollowing = profileData.followers?.includes(myData.user) || false;
+            isBlocked = profileData.blockedBy?.includes(myData.user) || false;
+
+            // Update top bar
+            document.getElementById('topBarName').textContent = profileData.name;
+
+            // Avatar
+            document.getElementById('profileAvatar').childNodes[0].textContent = profileData.name?.[0] || '؟';
+            if (profileData.isVerified) document.getElementById('verifiedBadge').style.display = 'flex';
+
+            // Name & handle
+            document.getElementById('profileName').innerHTML = `
+                ${profileData.name}
+                ${profileData.isVerified ? '<span style="color:#42a5f5;font-size:0.85rem">✔</span>' : ''}
+            `;
+            document.getElementById('profileHandle').textContent = `@${profileData.user}`;
+
+            // Bio
+            if (profileData.bio) document.getElementById('profileBio').textContent = profileData.bio;
+
+            // Meta
+            const meta = [];
+            if (profileData.wilaya) meta.push(`<div class="meta-item">📍 <span>${profileData.wilaya}</span></div>`);
+            if (profileData.uni) meta.push(`<div class="meta-item">🎓 <span>${profileData.uni}</span></div>`);
+            if (profileData.joinedAt) meta.push(`<div class="meta-item">📅 انضم <span>${new Date(profileData.joinedAt).toLocaleDateString('ar-DZ', {year:'numeric',month:'long'})}</span></div>`);
+            document.getElementById('profileMeta').innerHTML = meta.join('');
+
+            // Stats
+            document.getElementById('statFollowers').textContent = profileData.followers?.length || 0;
+            document.getElementById('statFollowing').textContent = profileData.following?.length || 0;
+
+            // Action buttons
+            const actionsRow = document.getElementById('actionsRow');
+            if (isOwn) {
+                actionsRow.innerHTML = `<button class="btn-edit" onclick="location.href='edit-profile.html'">تعديل الملف</button>`;
+            } else {
+                actionsRow.innerHTML = `
+                    <button class="btn-follow ${isFollowing ? 'following' : ''}" id="followBtn" onclick="toggleFollow()">
+                        ${isFollowing ? 'تتابعه ✓' : 'متابعة'}
+                    </button>
+                    <button class="btn-message" onclick="location.href='chat.html?with=${profileData.user}'">رسالة ✉️</button>
+                `;
+            }
+
+            // Dots menu
+            const dotsWrap = document.getElementById('dotsWrap');
+            const dotsPlaceholder = document.getElementById('dotsPlaceholder');
+            dotsWrap.style.display = 'block';
+            dotsPlaceholder.style.display = 'none';
+            buildDotsMenu();
+
+            // Tab content
+            renderTabContent();
+
+        } catch(e) {
+            console.error(e);
+        }
+    }
+
+    loadProfile();
+</script>
+</body>
+</html>
