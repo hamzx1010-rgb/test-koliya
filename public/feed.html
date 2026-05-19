@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الرئيسية | كُلِّيَة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Kufi+Arabic:wght@400;700;900&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #080806;
+            --card: #0e0e0b;
+            --card2: #131310;
+            --gold: #c9a84c;
+            --gold2: #e8c76a;
+            --gold-dim: rgba(201,168,76,0.12);
+            --gold-glow: rgba(201,168,76,0.25);
+            --text: #f5f0e8;
+            --text-dim: #9e9880;
+            --border: rgba(201,168,76,0.15);
+            --border-bright: rgba(201,168,76,0.35);
+            --nav-h: 64px;
+            --bottom-h: 65px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Tajawal', sans-serif;
+            padding-top: var(--nav-h);
+            padding-bottom: calc(var(--bottom-h) + 10px);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Subtle noise overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        /* TOP NAV */
+        .nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: var(--nav-h);
+            background: rgba(8,8,6,0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 18px;
+            z-index: 200;
+        }
+
+        .nav-logo {
+            font-family: 'Noto Kufi Arabic', sans-serif;
+            font-weight: 900;
+            font-size: 1.65rem;
+            color: var(--gold);
+            letter-spacing: 1px;
+            text-shadow: 0 0 18px rgba(201,168,76,0.4);
+            line-height: 1;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            position: relative;
+        }
+        .nav-btn:hover { background: var(--gold-dim); color: var(--gold); }
+
+        .notif-dot {
+            position: absolute;
+            top: 6px; left: 6px;
+            width: 8px; height: 8px;
+            background: var(--gold);
+            border-radius: 50%;
+            border: 2px solid var(--bg);
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+        }
+
+        /* TABS */
+        .tabs-wrapper {
+            position: sticky;
+            top: var(--nav-h);
+            z-index: 100;
+            background: rgba(8,8,6,0.88);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 12px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .tabs::-webkit-scrollbar { display: none; }
+
+        .tab {
+            flex: 1;
+            padding: 14px 10px;
+            text-align: center;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-dim);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: color 0.25s, border-color 0.25s;
+            white-space: nowrap;
+            user-select: none;
+        }
+        .tab.active {
+            color: var(--gold);
+            border-bottom-color: var(--gold);
+        }
+        .tab:hover:not(.active) { color: var(--text); }
+
+        /* CONTENT PANELS */
+        .panels-wrapper {
+            overflow: hidden;
+            position: relative;
+        }
+
+        .panel {
+            display: none;
+            animation: slideIn 0.35s cubic-bezier(0.4,0,0.2,1);
+        }
+        .panel.active { display: block; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .panel.slide-left { animation: slideInLeft 0.35s cubic-bezier(0.4,0,0.2,1); }
+
+        /* CREATE POST */
+        .create-post {
+            background: var(--card);
+            margin: 14px 14px 8px;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .create-post::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 80px; height: 2px;
+            background: linear-gradient(to left, var(--gold), transparent);
+        }
+
+        .create-post-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .user-avatar-sm {
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold-dim), rgba(201,168,76,0.3));
+            border: 1.5px solid var(--border-bright);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+            color: var(--gold);
+        }
+
+        textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            padding: 4px 0;
+            resize: none;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1rem;
+            line-height: 1.5;
+            outline: none;
+            width: 100%;
+        }
+        textarea::placeholder { color: var(--text-dim); }
+
+        .post-actions-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        .post-tools { display: flex; gap: 14px; }
+        .post-tool-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1.05rem;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+        .post-tool-btn:hover { color: var(--gold); }
+
+        .post-btn {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 8px 22px;
+            border-radius: 20px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        }
+        .post-btn:hover {
+            background: var(--gold2);
+            box-shadow: 0 4px 16px rgba(201,168,76,0.35);
+            transform: translateY(-1px);
+        }
+        .post-btn:active { transform: translateY(0); }
+
+        /* DIVIDER */
+        .section-divider {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px 4px;
+        }
+        .section-divider span {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            white-space: nowrap;
+        }
+        .section-divider::before, .section-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* FEED */
+        .feed-container { padding: 6px 14px; }
+
+        .post-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 15px;
+            margin-bottom: 12px;
+            animation: fadeUp 0.4s ease both;
+            transition: border-color 0.25s, box-shadow 0.25s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .post-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 70%, rgba(201,168,76,0.03));
+            pointer-events: none;
+        }
+
+        .post-card:hover {
+            border-color: var(--border-bright);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .post-card:nth-child(1) { animation-delay: 0.05s; }
+        .post-card:nth-child(2) { animation-delay: 0.1s; }
+        .post-card:nth-child(3) { animation-delay: 0.15s; }
+        .post-card:nth-child(4) { animation-delay: 0.2s; }
+        .post-card:nth-child(5) { animation-delay: 0.25s; }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.08));
+            border: 1.5px solid var(--border-bright);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: var(--gold);
+            flex-shrink: 0;
+            font-family: 'Tajawal';
+            font-weight: 700;
+        }
+
+        .post-author-info { flex: 1; }
+        .post-author { color: var(--gold); font-weight: 700; font-size: 0.95rem; display: block; }
+        .post-handle { color: var(--text-dim); font-size: 0.78rem; }
+
+        .post-content {
+            font-family: 'Amiri', serif;
+            line-height: 1.75;
+            font-size: 1.05rem;
+            color: var(--text);
+        }
+
+        .post-footer {
+            display: flex;
+            gap: 18px;
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        .post-action {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-dim);
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            user-select: none;
+        }
+        .post-action:hover { color: var(--gold); }
+        .post-action.liked { color: #e05a5a; }
+        .post-action span { font-size: 1rem; }
+
+        .post-time { color: var(--text-dim); font-size: 0.75rem; margin-right: auto; }
+
+        /* SUGGESTIONS PANEL */
+        .suggestions-container { padding: 10px 14px; }
+
+        .trends-label {
+            font-family: 'Noto Kufi Arabic', sans-serif;
+            font-size: 0.85rem;
+            color: var(--gold);
+            margin: 16px 0 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .trends-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .trend-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            animation: fadeUp 0.4s ease both;
+        }
+        .trend-card:hover { border-color: var(--border-bright); background: var(--card2); }
+
+        .trend-tag {
+            color: var(--gold);
+            font-weight: 700;
+            font-size: 0.95rem;
+            font-family: 'Noto Kufi Arabic', sans-serif;
+        }
+        .trend-count {
+            color: var(--text-dim);
+            font-size: 0.78rem;
+            margin-top: 3px;
+        }
+
+        .suggest-user {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: fadeUp 0.4s ease both;
+            transition: border-color 0.2s;
+        }
+        .suggest-user:hover { border-color: var(--border-bright); }
+
+        .suggest-info { flex: 1; }
+        .suggest-name { color: var(--text); font-weight: 600; font-size: 0.9rem; }
+        .suggest-handle { color: var(--text-dim); font-size: 0.78rem; }
+
+        .follow-btn {
+            background: var(--gold-dim);
+            color: var(--gold);
+            border: 1px solid var(--border-bright);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .follow-btn:hover { background: var(--gold); color: #000; }
+
+        /* CHANNELS PANEL */
+        .channel-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 12px;
+            animation: fadeUp 0.4s ease both;
+            transition: border-color 0.2s;
+            cursor: pointer;
+        }
+        .channel-card:hover { border-color: var(--border-bright); }
+
+        .channel-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .channel-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(201,168,76,0.25), rgba(201,168,76,0.08));
+            border: 1px solid var(--border-bright);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .channel-name { color: var(--gold); font-weight: 700; font-size: 0.95rem; }
+        .channel-subs { color: var(--text-dim); font-size: 0.78rem; }
+        .channel-last { color: var(--text-dim); font-size: 0.85rem; line-height: 1.5; }
+
+        /* BOTTOM NAV */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: var(--bottom-h);
+            background: rgba(8,8,6,0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            z-index: 200;
+        }
+
+        .bottom-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            padding: 8px 0;
+            color: var(--text-dim);
+            transition: color 0.2s;
+            position: relative;
+        }
+
+        .bottom-item.active { color: var(--gold); }
+        .bottom-item:hover:not(.active) { color: var(--text); }
+
+        .bottom-icon { font-size: 1.2rem; line-height: 1; }
+        .bottom-label {
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 500;
+        }
+
+        .bottom-item.active::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 20%; right: 20%;
+            height: 2px;
+            background: var(--gold);
+            border-radius: 0 0 3px 3px;
+            box-shadow: 0 0 8px rgba(201,168,76,0.6);
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-dim);
+        }
+        .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .empty-state p { font-size: 0.9rem; }
+
+        /* LOADING SHIMMER */
+        .shimmer {
+            background: linear-gradient(90deg, var(--card) 25%, var(--card2) 50%, var(--card) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+            height: 16px;
+            margin-bottom: 8px;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .shimmer-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 15px;
+            margin-bottom: 12px;
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <!-- TOP NAV -->
+    <nav class="nav">
+        <div class="nav-logo">كُلِّيَة</div>
+        <div class="nav-actions">
+            <button class="nav-btn" onclick="location.href='inbox.html'" title="الرسائل">
+                ✉️
+            </button>
+            <button class="nav-btn" id="notifBtn" onclick="location.href='notifications.html'" title="الإشعارات">
+                🔔
+                <span class="notif-dot" id="notifDot" style="display:none"></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- TABS -->
+    <div class="tabs-wrapper">
+        <div class="tabs">
+            <div class="tab active" data-tab="home" onclick="switchTab('home', this)">الرئيسية</div>
+            <div class="tab" data-tab="following" onclick="switchTab('following', this)">متابَعاتي</div>
+            <div class="tab" data-tab="discover" onclick="switchTab('discover', this)">اكتشاف</div>
+        </div>
+    </div>
+
+    <!-- PANELS -->
+    <div class="panels-wrapper">
+
+        <!-- HOME PANEL -->
+        <div class="panel active" id="panel-home">
+            <div class="create-post">
+                <div class="create-post-top">
+                    <div class="user-avatar-sm" id="myAvatarSm">؟</div>
+                    <textarea id="postText" rows="3" placeholder="بماذا تفكر؟"></textarea>
+                </div>
+                <div class="post-actions-row">
+                    <div class="post-tools">
+                        <button class="post-tool-btn" title="صورة">📷</button>
+                        <button class="post-tool-btn" title="ملف">📎</button>
+                        <button class="post-tool-btn" title="استطلاع">📊</button>
+                    </div>
+                    <button class="post-btn" onclick="sendPost()">نشر</button>
+                </div>
+            </div>
+
+            <div class="section-divider"><span>آخر المنشورات</span></div>
+
+            <div class="feed-container" id="feed">
+                <!-- shimmer loading -->
+                <div class="shimmer-card" id="shimmer1">
+                    <div class="shimmer" style="width:40%;margin-bottom:12px"></div>
+                    <div class="shimmer" style="width:100%"></div>
+                    <div class="shimmer" style="width:80%"></div>
+                </div>
+                <div class="shimmer-card" id="shimmer2">
+                    <div class="shimmer" style="width:35%;margin-bottom:12px"></div>
+                    <div class="shimmer" style="width:100%"></div>
+                    <div class="shimmer" style="width:65%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOLLOWING PANEL -->
+        <div class="panel" id="panel-following">
+            <div class="section-divider"><span>قنوات وصفحات المتابَعة</span></div>
+            <div class="feed-container" id="followingFeed">
+                <div class="empty-state">
+                    <div class="icon">📡</div>
+                    <p>لا توجد قنوات أو صفحات متابَعة بعد</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- DISCOVER PANEL -->
+        <div class="panel" id="panel-discover">
+            <div class="suggestions-container">
+
+                <div class="trends-label">📈 الترندات</div>
+                <div class="trend-card" style="animation-delay:0.05s">
+                    <div class="trend-tag">#الامتحانات_النهائية</div>
+                    <div class="trend-count">٢٤٠ منشور</div>
+                </div>
+                <div class="trend-card" style="animation-delay:0.1s">
+                    <div class="trend-tag">#نتائج_الجامعة</div>
+                    <div class="trend-count">١٨٥ منشور</div>
+                </div>
+                <div class="trend-card" style="animation-delay:0.15s">
+                    <div class="trend-tag">#مشاريع_تخرج</div>
+                    <div class="trend-count">١٣٢ منشور</div>
+                </div>
+
+                <div class="trends-label">👤 مقترحون للمتابعة</div>
+                <div class="suggest-user" style="animation-delay:0.2s">
+                    <div class="avatar">أ</div>
+                    <div class="suggest-info">
+                        <div class="suggest-name">أستاذ أمين</div>
+                        <div class="suggest-handle">@prof.amine</div>
+                    </div>
+                    <button class="follow-btn">متابعة</button>
+                </div>
+                <div class="suggest-user" style="animation-delay:0.25s">
+                    <div class="avatar">س</div>
+                    <div class="suggest-info">
+                        <div class="suggest-name">نادي العلوم</div>
+                        <div class="suggest-handle">@science.club</div>
+                    </div>
+                    <button class="follow-btn">متابعة</button>
+                </div>
+                <div class="suggest-user" style="animation-delay:0.3s">
+                    <div class="avatar">ط</div>
+                    <div class="suggest-info">
+                        <div class="suggest-name">طلبة الهندسة</div>
+                        <div class="suggest-handle">@engineering.students</div>
+                    </div>
+                    <button class="follow-btn">متابعة</button>
+                </div>
+
+                <div class="trends-label">📢 قنوات مقترحة</div>
+                <div class="channel-card" style="animation-delay:0.35s">
+                    <div class="channel-header">
+                        <div class="channel-icon">🎓</div>
+                        <div>
+                            <div class="channel-name">إعلانات الكلية</div>
+                            <div class="channel-subs">١٢٠٠ مشترك</div>
+                        </div>
+                        <button class="follow-btn" style="margin-right:auto">انضمام</button>
+                    </div>
+                </div>
+                <div class="channel-card" style="animation-delay:0.4s">
+                    <div class="channel-header">
+                        <div class="channel-icon">📚</div>
+                        <div>
+                            <div class="channel-name">مكتبة المحاضرات</div>
+                            <div class="channel-subs">٨٤٠ مشترك</div>
+                        </div>
+                        <button class="follow-btn" style="margin-right:auto">انضمام</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-bar">
+        <div class="bottom-item active" id="nav-home" onclick="goTo('feed.html')">
+            <div class="bottom-icon">🏠</div>
+            <div class="bottom-label">الرئيسية</div>
+        </div>
+        <div class="bottom-item" onclick="goTo('search.html')">
+            <div class="bottom-icon">🔍</div>
+            <div class="bottom-label">بحث</div>
+        </div>
+        <div class="bottom-item" onclick="goTo('inbox.html')">
+            <div class="bottom-icon">💬</div>
+            <div class="bottom-label">محادثات</div>
+        </div>
+        <div class="bottom-item" id="nav-profile" onclick="goToProfile()">
+            <div class="bottom-icon">👤</div>
+            <div class="bottom-label">ملفي</div>
+        </div>
+    </div>
+
+<script>
+    const myData = JSON.parse(localStorage.getItem('userData'));
+    if (!myData) window.location.href = 'index.html';
+
+    // Set avatar initial
+    if (myData) {
+        const initial = myData.name ? myData.name[0] : '؟';
+        document.getElementById('myAvatarSm').textContent = initial;
+        document.getElementById('postText').placeholder = `بماذا تفكر يا ${myData.name?.split(' ')[0]}؟`;
+    }
+
+    function goTo(page) { location.href = page; }
+    function goToProfile() {
+        if (myData) location.href = 'profile.html?u=' + myData.user;
+    }
+
+    // Tab switching
+    let currentTab = 'home';
+    function switchTab(tab, el) {
+        if (tab === currentTab) return;
+
+        // Determine direction
+        const tabs = ['home', 'following', 'discover'];
+        const dir = tabs.indexOf(tab) > tabs.indexOf(currentTab) ? '' : 'slide-left';
+
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+
+        const oldPanel = document.getElementById('panel-' + currentTab);
+        const newPanel = document.getElementById('panel-' + tab);
+
+        oldPanel.classList.remove('active');
+        newPanel.classList.remove('slide-left');
+        if (dir) newPanel.classList.add('slide-left');
+        newPanel.classList.add('active');
+
+        currentTab = tab;
+
+        if (tab === 'following') loadFollowingFeed();
+    }
+
+    // Fetch & render posts
+    async function fetchPosts() {
+        try {
+            const res = await fetch('/api/posts');
+            const posts = await res.json();
+            renderPosts(posts);
+        } catch(e) {
+            document.getElementById('feed').innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">⚠️</div>
+                    <p>تعذّر تحميل المنشورات</p>
+                </div>`;
+        }
+    }
+
+    function renderPosts(posts) {
+        const feed = document.getElementById('feed');
+        if (!posts.length) {
+            feed.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>لا توجد منشورات بعد</p></div>`;
+            return;
+        }
+        feed.innerHTML = posts.map((p, i) => {
+            const initial = p.author ? p.author[0].toUpperCase() : '؟';
+            const time = new Date(p.id).toLocaleString('ar-DZ');
+            return `
+            <div class="post-card" style="animation-delay:${i*0.06}s">
+                <div class="post-header" onclick="location.href='profile.html?u=${p.author}'">
+                    <div class="avatar">${initial}</div>
+                    <div class="post-author-info">
+                        <span class="post-author">${p.author}</span>
+                        <span class="post-handle">@${p.author}</span>
+                    </div>
+                </div>
+                <div class="post-content">${p.content}</div>
+                <div class="post-footer">
+                    <div class="post-action" onclick="likePost(this, '${p.id}')">
+                        <span>🤍</span> <span class="like-count">${p.likes || 0}</span>
+                    </div>
+                    <div class="post-action" onclick="location.href='post.html?id=${p.id}'">
+                        <span>💬</span> <span>${p.comments || 0}</span>
+                    </div>
+                    <div class="post-action" onclick="sharePost('${p.id}')">
+                        <span>↩️</span>
+                    </div>
+                    <span class="post-time">${time}</span>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    async function sendPost() {
+        const text = document.getElementById('postText').value.trim();
+        if (!text || !myData) return;
+        const btn = document.querySelector('.post-btn');
+        btn.textContent = '...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/posts', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ author: myData.user, content: text })
+            });
+            if (res.ok) {
+                document.getElementById('postText').value = '';
+                await fetchPosts();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        } finally {
+            btn.textContent = 'نشر';
+            btn.disabled = false;
+        }
+    }
+
+    async function likePost(el, postId) {
+        el.classList.toggle('liked');
+        const icon = el.querySelector('span:first-child');
+        icon.textContent = el.classList.contains('liked') ? '❤️' : '🤍';
+        // API call if endpoint exists
+        try {
+            await fetch(`/api/posts/${postId}/like`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user: myData?.user }) });
+        } catch(e) {}
+    }
+
+    function sharePost(postId) {
+        const url = `${location.origin}/post.html?id=${postId}`;
+        if (navigator.share) {
+            navigator.share({ title: 'كُلِّيَة', url });
+        } else {
+            navigator.clipboard?.writeText(url);
+        }
+    }
+
+    async function loadFollowingFeed() {
+        if (!myData) return;
+        const container = document.getElementById('followingFeed');
+        container.innerHTML = `<div class="shimmer-card"><div class="shimmer" style="width:40%;margin-bottom:12px"></div><div class="shimmer"></div><div class="shimmer" style="width:70%"></div></div>`;
+        try {
+            const res = await fetch(`/api/posts?following=${myData.user}`);
+            const posts = await res.json();
+            if (!posts.length) throw new Error('empty');
+            container.innerHTML = posts.map((p, i) => {
+                const initial = p.author ? p.author[0].toUpperCase() : '؟';
+                return `
+                <div class="post-card" style="animation-delay:${i*0.06}s">
+                    <div class="post-header" onclick="location.href='profile.html?u=${p.author}'">
+                        <div class="avatar">${initial}</div>
+                        <div class="post-author-info">
+                            <span class="post-author">${p.author}</span>
+                            <span class="post-handle">@${p.author}</span>
+                        </div>
+                    </div>
+                    <div class="post-content">${p.content}</div>
+                    <div class="post-footer">
+                        <div class="post-action"><span>🤍</span> <span>${p.likes||0}</span></div>
+                        <div class="post-action"><span>💬</span> <span>${p.comments||0}</span></div>
+                        <span class="post-time">${new Date(p.id).toLocaleString('ar-DZ')}</span>
+                    </div>
+                </div>`;
+            }).join('');
+        } catch {
+            container.innerHTML = `<div class="empty-state"><div class="icon">📡</div><p>لا توجد منشورات من المتابَعين</p></div>`;
+        }
+    }
+
+    // Check notifications
+    async function checkNotifs() {
+        if (!myData) return;
+        try {
+            const res = await fetch(`/api/notifications?user=${myData.user}`);
+            const data = await res.json();
+            const unread = data.filter ? data.filter(n => !n.read).length : 0;
+            if (unread > 0) document.getElementById('notifDot').style.display = 'block';
+        } catch(e) {}
+    }
+
+    // Init
+    fetchPosts();
+    checkNotifs();
+    setInterval(fetchPosts, 15000);
+    setInterval(checkNotifs, 30000);
+</script>
+</body>
+</html>
